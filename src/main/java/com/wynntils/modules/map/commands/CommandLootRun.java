@@ -5,7 +5,6 @@
 package com.wynntils.modules.map.commands;
 
 import com.wynntils.McIf;
-import com.wynntils.core.utils.Utils;
 import com.wynntils.core.utils.helpers.Delay;
 import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.map.instances.LootRunNote;
@@ -18,6 +17,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.Entity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
@@ -303,7 +303,8 @@ public class CommandLootRun extends CommandBase implements IClientCommand {
             }
             case "folder": {
                 URI uri = LootRunManager.STORAGE_FOLDER.toURI();
-                Utils.openUrl(uri.toString());
+
+                Util.getPlatform().openUri(uri);
                 return;
             }
             case "c":

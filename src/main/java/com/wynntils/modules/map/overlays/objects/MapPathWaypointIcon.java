@@ -12,7 +12,7 @@ import com.wynntils.modules.map.instances.PathWaypointProfile.PathPoint;
 import com.wynntils.transition.GlStateManager;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,12 +39,12 @@ public class MapPathWaypointIcon extends MapIcon {
 
     @Override
     public int getPosX() {
-        return profile.getPosX();
+        return profile.getX();
     }
 
     @Override
     public int getPosZ() {
-        return profile.getPosZ();
+        return profile.getZ();
     }
 
     @Override

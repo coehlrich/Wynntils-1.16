@@ -7,12 +7,10 @@ package com.wynntils.core.utils;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.wynntils.McIf;
 import com.wynntils.core.utils.reflections.ReflectionFields;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.MainWindow;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -21,16 +19,12 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
-import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.world.World;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.common.MinecraftForge;
-import org.lwjgl.LWJGLException;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.Toolkit;
@@ -147,7 +141,7 @@ public class Utils {
      */
     public static boolean isCharacterInfoPage(Screen gui) {
         if (!(gui instanceof ContainerScreen)) return false;
-        Matcher m = CHAR_INFO_PAGE_TITLE.matcher(((ContainerScreen)gui).getMenu().getSlot(0).container.getName());
+        Matcher m = CHAR_INFO_PAGE_TITLE.matcher(gui.getTitle().getString());
         return m.find();
     }
 
@@ -156,7 +150,7 @@ public class Utils {
      */
     public static boolean isServerSelector(Screen gui) {
         if (!(gui instanceof ContainerScreen)) return false;
-        Matcher m = SERVER_SELECTOR_TITLE.matcher(((ContainerScreen) gui).getMenu().getSlot(0).container.getName());
+        Matcher m = SERVER_SELECTOR_TITLE.matcher(gui.getTitle().getString());
         return m.find();
     }
 
@@ -177,7 +171,7 @@ public class Utils {
         ScorePlayerTeam team = scoreboard.addPlayerTeam(name);
         team.setCollisionRule(rule);
 
-        scoreboard.addPlayerToTeam(player, name);
+        scoreboard.addPlayerToTeam(player, team);
         return team;
     }
 
@@ -188,10 +182,12 @@ public class Utils {
      */
     public static void removeFakeScoreboard(String name) {
         Scoreboard scoreboard = McIf.world().getScoreboard();
-        if (scoreboard.getTeam(name) == null) return;
+        if (scoreboard.getPlayerTeam(name) == null)
+            return;
 
-        scoreboard.removeTeam(scoreboard.getTeam(name));
-        if (previousTeam != null) scoreboard.addPlayerToTeam(McIf.player().getName(), previousTeam);
+        scoreboard.removePlayerTeam(scoreboard.getPlayerTeam(name));
+        if (previousTeam != null)
+            scoreboard.addPlayerToTeam(McIf.player().getName().getString(), scoreboard.getPlayerTeam(previousTeam));
     }
 
     /**
@@ -208,13 +204,13 @@ public class Utils {
 
         if (oldScreen == screen) return;
         if (oldScreen != null) {
-            oldScreen.onGuiClosed();
+            oldScreen.onClose();
         }
 
         McIf.mc().screen = screen;
 
         if (screen != null) {
-            McIf.mc().setIngameNotInFocus();
+//            McIf.mc().set;
 
             MainWindow scaledresolution = new MainWindow(McIf.mc());
             int i = scaledresolution.getGuiScaledWidth();
@@ -268,8 +264,7 @@ public class Utils {
         final Pattern PERCENTAGE_PATTERN = Pattern.compile(" +\\[[0-9]+%\\]");
         final Pattern INGREDIENT_PATTERN = Pattern.compile(" +\\[✫+\\]");
 
-        String name = stack.getDisplayName();
-        name = McIf.getTextWithoutFormattingCodes(name);
+        String name = stack.getDisplayName().getString();
         name = PERCENTAGE_PATTERN.matcher(name).replaceAll("");
         name = INGREDIENT_PATTERN.matcher(name).replaceAll("");
         if (name.startsWith("Perfect ")) {
@@ -288,41 +283,42 @@ public class Utils {
         return name;
     }
 
-    /**
-     * Open the specified URL in the user's browser if possible, otherwise copy it to the clipboard
-     * and send it to chat.
-     * @param url The url to open
-     */
-    public static void openUrl(String url) {
-        try {
-            if (Util.getOSType() == Util.EnumOS.WINDOWS) {
-                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
-            } else if (Util.getOSType() == Util.EnumOS.OSX) {
-                Runtime.getRuntime().exec("open " + url);
-                // Keys can get "stuck" in LWJGL on macOS when the Minecraft window loses focus.
-                // Reset keyboard to solve this.
-                Keyboard.destroy();
-                Keyboard.create();
-            } else {
-                Runtime.getRuntime().exec("xdg-open " + url);
-            }
-            return;
-        } catch (IOException | LWJGLException e) {
-            e.printStackTrace();
-        }
-
-        Utils.copyToClipboard(url);
-        StringTextComponent text = new StringTextComponent("Error opening link, it has been copied to your clipboard\n");
-        text.getStyle().setColor(TextFormatting.DARK_RED);
-
-        StringTextComponent urlComponent = new StringTextComponent(url);
-        urlComponent.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
-        urlComponent.getStyle().setColor(TextFormatting.DARK_AQUA);
-        urlComponent.getStyle().setUnderlined(true);
-        text.appendSibling(urlComponent);
-
-        McIf.sendMessage(text);
-    }
+    // Was a backport of new url opening
+//    /**
+//     * Open the specified URL in the user's browser if possible, otherwise copy it to the clipboard
+//     * and send it to chat.
+//     * @param url The url to open
+//     */
+//    public static void openUrl(String url) {
+//        try {
+//            if (Util.getOSType() == Util.EnumOS.WINDOWS) {
+//                Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + url);
+//            } else if (Util.getOSType() == Util.EnumOS.OSX) {
+//                Runtime.getRuntime().exec("open " + url);
+//                // Keys can get "stuck" in LWJGL on macOS when the Minecraft window loses focus.
+//                // Reset keyboard to solve this.
+//                Keyboard.destroy();
+//                Keyboard.create();
+//            } else {
+//                Runtime.getRuntime().exec("xdg-open " + url);
+//            }
+//            return;
+//        } catch (IOException | LWJGLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        Utils.copyToClipboard(url);
+//        StringTextComponent text = new StringTextComponent("Error opening link, it has been copied to your clipboard\n");
+//        text.getStyle().setColor(TextFormatting.DARK_RED);
+//
+//        StringTextComponent urlComponent = new StringTextComponent(url);
+//        urlComponent.getStyle().setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+//        urlComponent.getStyle().setColor(TextFormatting.DARK_AQUA);
+//        urlComponent.getStyle().setUnderlined(true);
+//        text.appendSibling(urlComponent);
+//
+//        McIf.sendMessage(text);
+//    }
 
     public static String encodeUrl(String url) {
         try {

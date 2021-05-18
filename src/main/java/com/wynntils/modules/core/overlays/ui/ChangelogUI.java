@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.core.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
@@ -15,10 +16,9 @@ import com.wynntils.core.utils.StringUtils;
 import com.wynntils.modules.core.config.CoreDBConfig;
 import com.wynntils.modules.core.enums.UpdateStream;
 import com.wynntils.webapi.WebManager;
-import net.minecraft.client.Minecraft;
+import net.java.games.input.Mouse;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.text.StringTextComponent;
-import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -109,7 +109,7 @@ public class ChangelogUI extends Screen {
 
     @Override
     public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
+        renderBackground(matrix);
 
         ScreenRenderer.beginGL(0, 0);
 
@@ -131,7 +131,7 @@ public class ChangelogUI extends Screen {
 
         float scrollPositionOffset = scrollbarSize == 118 ? 0 : (((changelogContent.size() / 15.0f) * 159) * scrollPercent);
         for (String changelogLine : changelogContent) {
-            renderer.drawString(changelogLine.replace("%user%", McIf.mc().getSession().getUsername()), textX, baseY - scrollPositionOffset, CommonColors.BROWN, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
+            renderer.drawString(changelogLine.replace("%user%", McIf.mc().getUser().getName()), textX, baseY - scrollPositionOffset, CommonColors.BROWN, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
 
             baseY += 10;
         }

@@ -9,8 +9,7 @@ import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.data.CharacterData;
 import com.wynntils.core.utils.helpers.CommandResponse;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.GuiChat;
+import net.minecraft.client.gui.screen.ChatScreen;
 
 import java.util.regex.Pattern;
 
@@ -24,7 +23,7 @@ public class PingManager {
     public static void calculatePing() {
         if (!Reference.onWorld
             || !PlayerInfo.get(CharacterData.class).isLoaded()
-            || McIf.mc().screen instanceof GuiChat
+            || McIf.mc().screen instanceof ChatScreen
             || System.currentTimeMillis() - lastCall < 15000) return;
 
         CommandResponse response = new CommandResponse("/toggle", (m, t) -> {

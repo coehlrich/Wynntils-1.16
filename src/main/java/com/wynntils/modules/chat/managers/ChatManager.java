@@ -16,9 +16,9 @@ import com.wynntils.modules.questbook.managers.QuestManager;
 import com.wynntils.modules.utilities.configs.TranslationConfig;
 import com.wynntils.webapi.services.TranslationManager;
 import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraft.util.SoundEvents;
 import net.minecraft.util.text.*;
 import net.minecraft.util.text.event.ClickEvent;
 import net.minecraft.util.text.event.HoverEvent;
@@ -70,10 +70,10 @@ public class ChatManager {
 
     public static ITextComponent processRealMessage(ITextComponent in) {
         if (in == null) return in;
-        ITextComponent original = in.createCopy();
+        ITextComponent original = in.copy();
 
         // Reorganizing
-        if (!in.getUnformattedComponentText().isEmpty()) {
+        if (!in.getContents().isEmpty()) {
             ITextComponent newMessage = new StringTextComponent("");
             for (ITextComponent component : in) {
                 component = component.createCopy();

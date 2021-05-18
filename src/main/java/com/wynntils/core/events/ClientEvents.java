@@ -18,8 +18,8 @@ import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.utils.reflections.ReflectionFields;
 import com.wynntils.core.utils.reflections.ReflectionMethods;
 import com.wynntils.modules.core.managers.GuildAndFriendManager;
-import net.minecraft.client.gui.screen.DisconnectedScreen;
 import net.minecraft.client.gui.screen.ConnectingScreen;
+import net.minecraft.client.gui.screen.DisconnectedScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.network.play.server.SPlayerListItemPacket.Action;
@@ -29,11 +29,10 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.util.List;
 import java.util.UUID;
@@ -70,7 +69,7 @@ public class ClientEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onServerJoin(FMLNetworkEvent.ClientConnectedToServerEvent e) {
+    public void onServerJoin(ClientPlayerNetworkEvent.LoggedInEvent e) {
         setLoadingStatusMsg("Connected...");
         Reference.setUserWorld(null);
 
@@ -78,7 +77,7 @@ public class ClientEvents {
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST)
-    public void onServerLeave(FMLNetworkEvent.ClientDisconnectionFromServerEvent e) {
+    public void onServerLeave(ClientPlayerNetworkEvent.LoggedOutEvent e) {
         if (Reference.onServer) {
             if (Reference.onWorld) {
                 Reference.setUserWorld(null);

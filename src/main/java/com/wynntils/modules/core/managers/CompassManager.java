@@ -8,7 +8,6 @@ package com.wynntils.modules.core.managers;
 import com.wynntils.McIf;
 import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.core.events.ServerEvents;
-import net.minecraft.client.Minecraft;
 
 public class CompassManager {
 
@@ -22,7 +21,7 @@ public class CompassManager {
     public static void setCompassLocation(Location compassLocation) {
         CompassManager.compassLocation = compassLocation;
 
-        McIf.world().getLevelData().setSpawn(compassLocation.toBlockPos());
+        McIf.world().getLevelData().setSpawn(compassLocation.toBlockPos(), 0);
     }
 
     public static void reset() {

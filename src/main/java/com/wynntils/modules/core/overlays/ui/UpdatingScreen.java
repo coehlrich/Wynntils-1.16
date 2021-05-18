@@ -4,15 +4,16 @@
 
 package com.wynntils.modules.core.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.modules.core.CoreModule;
 import com.wynntils.modules.core.config.CoreDBConfig;
 import com.wynntils.modules.core.overlays.UpdateOverlay;
-
-import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 import java.io.File;
@@ -33,17 +34,20 @@ public class UpdatingScreen extends Screen {
     private float progress = 0f;
 
     public UpdatingScreen(boolean restartNow) {
+        super(new StringTextComponent("Downloading Update"));
         doUpdate(restartNow);
     }
 
     @Override
     public void init() {
-        this.buttonList.add(backButton = new Button(0, this.width / 2 - 100, this.height / 4 + 132, 200, 20, ""));
+        backButton = this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 132, 200, 20, StringTextComponent.EMPTY, (button) -> {
+            McIf.mc().setScreen(null);
+        }));
         updateText();
     }
 
     private void updateText() {
-        backButton.displayString = (failed || complete) ? "Back" : "Cancel";
+        backButton.setMessage(new StringTextComponent((failed || complete) ? "Back" : "Cancel"));
     }
 
     private void doUpdate(boolean restartNow) {
@@ -57,7 +61,7 @@ public class UpdatingScreen extends Screen {
                 if (!failed) {
                     UpdateOverlay.scheduleCopyUpdateAtShutdown(jarName);
                     if (restartNow) {
-                        McIf.mc().shutdown();
+                        McIf.mc().stop();
                     }
                     complete = true;
                     updateText();
@@ -133,13 +137,6 @@ public class UpdatingScreen extends Screen {
         }
     }
 
-    @Override
-    public void actionPerformed(Button button) {
-        if (button.id == 0) {
-            McIf.mc().setScreen(null);
-        }
-    }
-
     private static final String[] DOTS = { ".", "..", "...", "...", "..." };
 
     private void setChangelogs() {
@@ -151,25 +148,25 @@ public class UpdatingScreen extends Screen {
 
     @Override
     public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
+        renderBackground(matrix);
 
         if (failed) {
             setChangelogs();
-            drawCenteredString(McIf.mc().font, TextFormatting.RED + "Update download failed", this.width/2, this.height/2, 0xFFFFFFFF);
+            drawCenteredString(matrix, McIf.mc().font, new StringTextComponent("Update download failed").withStyle(TextFormatting.RED), this.width / 2, this.height / 2, 0xFFFFFFFF);
         } else if (complete) {
-            drawCenteredString(McIf.mc().font, TextFormatting.GREEN + "Update download complete", this.width/2, this.height/2, 0xFFFFFF);
+            drawCenteredString(matrix, McIf.mc().font, new StringTextComponent("Update download complete"), this.width / 2, this.height / 2, 0xFFFFFF);
         } else {
             int left = Math.max(this.width/2 - 100, 10);
             int right = Math.min(this.width/2 + 100, this.width - 10);
-            int top = this.height/2 - 2 - MathHelper.ceil(McIf.mc().font.FONT_HEIGHT / 2f);
-            int bottom = this.height/2 + 2 + MathHelper.floor(McIf.mc().font.FONT_HEIGHT / 2f);
-            drawRect(left - 1, top - 1, right + 1, bottom + 1, 0xFFC0C0C0);
+            int top = this.height / 2 - 2 - MathHelper.ceil(McIf.mc().font.lineHeight / 2f);
+            int bottom = this.height / 2 + 2 + MathHelper.floor(McIf.mc().font.lineHeight / 2f);
+            fill(matrix, left - 1, top - 1, right + 1, bottom + 1, 0xFFC0C0C0);
             int progressPoint = MathHelper.clamp(MathHelper.floor(progress * (right - left) + left), left, right);
-            drawRect(left, top, progressPoint, bottom, 0xFFCB3D35);
-            drawRect(progressPoint, top, right, bottom, 0xFFFFFFFF);
+            fill(matrix, left, top, progressPoint, bottom, 0xFFCB3D35);
+            fill(matrix, progressPoint, top, right, bottom, 0xFFFFFFFF);
 
             String label = String.format("%d%%", MathHelper.clamp(MathHelper.floor(progress * 100), 0, 100));
-            McIf.mc().font.drawString(label, (this.width - McIf.mc().font.width(label))/2, top + 3, 0xFF000000);
+            McIf.mc().font.draw(matrix, label, (this.width - McIf.mc().font.width(label)) / 2, top + 3, 0xFF000000);
             int x = (this.width - McIf.mc().font.width(String.format("Downloading %s", DOTS[DOTS.length - 1]))) / 2;
             String title = String.format("Downloading %s", DOTS[((int) (System.currentTimeMillis() % (DOT_TIME * DOTS.length))) / DOT_TIME]);
             drawString(McIf.mc().font, title, x, top - McIf.mc().font.FONT_HEIGHT - 2, 0xFFFFFFFF);

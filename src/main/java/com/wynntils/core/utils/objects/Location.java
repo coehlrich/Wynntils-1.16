@@ -39,11 +39,11 @@ public class Location extends Point3d {
     }
 
     // Convert from net.minecraft.util.math vectors (Don't import so the names aren't confusing)
-    public Location(net.minecraft.util.math.Vec3i v) {
+    public Location(net.minecraft.util.math.vector.Vector3i v) {
         super(v.getX(), v.getY(), v.getZ());
     }
 
-    public Location(net.minecraft.util.math.Vec3d v) {
+    public Location(net.minecraft.util.math.vector.Vector3d v) {
         super(v.x, v.y, v.z);
     }
 
@@ -119,8 +119,8 @@ public class Location extends Point3d {
         return new BlockPos(x, y, z);
     }
 
-    public final net.minecraft.util.math.Vec3d toMinecraftVec3d() {
-        return new net.minecraft.util.math.Vec3d(x, y, z);
+    public final net.minecraft.util.math.vector.Vector3d toMinecraftVec3d() {
+        return new net.minecraft.util.math.vector.Vector3d(x, y, z);
     }
 
     public Location clone() {

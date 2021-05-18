@@ -58,7 +58,7 @@ public class KeyHolder {
     }
 
     public boolean isKeyDown() {
-        return InputMappings.isKeyDown(Minecraft.getMinecraft().getWindow().getWindow(), getKey());
+        return InputMappings.isKeyDown(Minecraft.getInstance().getWindow().getWindow(), getKey());
     }
 
 }

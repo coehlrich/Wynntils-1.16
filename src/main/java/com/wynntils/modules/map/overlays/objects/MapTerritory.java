@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.map.overlays.objects;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
@@ -15,8 +16,8 @@ import com.wynntils.modules.map.instances.GuildResourceContainer;
 import com.wynntils.modules.map.instances.MapProfile;
 import com.wynntils.modules.map.managers.GuildResourceManager;
 import com.wynntils.modules.map.overlays.renderer.TerritoryInfoUI;
-import com.wynntils.webapi.profiles.TerritoryProfile;
 import com.wynntils.transition.GlStateManager;
+import com.wynntils.webapi.profiles.TerritoryProfile;
 
 public class MapTerritory {
 

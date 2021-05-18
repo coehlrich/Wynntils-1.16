@@ -8,7 +8,6 @@ import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.modules.core.instances.OtherPlayerProfile;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.network.play.NetworkPlayerInfo;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -154,14 +153,14 @@ public class MapPlayerIcon extends MapIcon {
     private static final ResourceLocation ALEX_SKIN = DefaultPlayerSkin.getDefaultSkin(new UUID(0, 1));
 
     static {
-        assert DefaultPlayerSkin.getSkinType(new UUID(0, 0)).equals("default");
-        assert DefaultPlayerSkin.getSkinType(new UUID(0, 1)).equals("slim");
+        assert DefaultPlayerSkin.getSkinModelName(new UUID(0, 0)).equals("default");
+        assert DefaultPlayerSkin.getSkinModelName(new UUID(0, 1)).equals("slim");
     }
 
     public ResourceLocation getResource() {
         if (cachedResource != null && cachedResource != STEVE_SKIN && cachedResource != ALEX_SKIN) return cachedResource;
         NetworkPlayerInfo info = profile.getPlayerInfo();
-        return cachedResource = (info != null ? info.getLocationSkin() : DefaultPlayerSkin.getDefaultSkin(profile.uuid));
+        return cachedResource = (info != null ? info.getSkinLocation() : DefaultPlayerSkin.getDefaultSkin(profile.uuid));
     }
 
 }

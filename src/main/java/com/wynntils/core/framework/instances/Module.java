@@ -4,19 +4,13 @@
 
 package com.wynntils.core.framework.instances;
 
-import com.wynntils.McIf;
 import com.wynntils.core.framework.FrameworkManager;
 import com.wynntils.core.framework.entities.interfaces.EntitySpawnCodition;
 import com.wynntils.core.framework.enums.Priority;
 import com.wynntils.core.framework.interfaces.Listener;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.settings.instances.SettingsHolder;
-import net.minecraft.client.Minecraft;
-import net.minecraft.command.ICommand;
-import net.minecraftforge.client.ClientCommandHandler;
 import net.minecraftforge.client.settings.IKeyConflictContext;
-import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
-import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.Logger;
 
 public abstract class Module {
@@ -26,14 +20,12 @@ public abstract class Module {
     /**
      * Called when the module is enabled
      * this occurs at the FMLPreInitializationEvent startup sequence.
-     * @see FMLPreInitializationEvent
      */
     public abstract void onEnable();
 
     /**
      * Called after all modules were enabled
      * this occurs at the FMLPostInitializationEvent startup sequence
-     * @see FMLPostInitializationEvent
      */
     public void postEnable() {
 
@@ -132,13 +124,13 @@ public abstract class Module {
 
     /**
      * Registers a new Client Command NOT linked to the module
-     * @see ICommand
      *
      * @param command the ClientCommand instance
      */
-    public void registerCommand(ICommand command) {
-        ClientCommandHandler.instance.registerCommand(command);
-    }
+    // TODO: uncomment
+//    public void registerCommand(ICommand command) {
+//        ClientCommandHandler.instance.registerCommand(command);
+//    }
 
     public Logger getLogger() {
         return logger;

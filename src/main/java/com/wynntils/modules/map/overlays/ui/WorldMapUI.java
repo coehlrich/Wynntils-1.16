@@ -26,7 +26,8 @@ import com.wynntils.modules.questbook.managers.QuestManager;
 import com.wynntils.modules.utilities.managers.KeyManager;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.profiles.TerritoryProfile;
-import net.minecraft.client.Minecraft;
+import net.java.games.input.Keyboard;
+import net.java.games.input.Mouse;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
@@ -34,10 +35,9 @@ import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.glfw.GLFW;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Point;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -453,18 +453,18 @@ public class WorldMapUI extends GuiMovementScreen {
     }
 
     @Override
-    protected void keyTyped(char typedChar, int keyCode) throws IOException {
+    protected boolean keyPressed(int keyCode, int scanCode, int modifiers) throws IOException {
         if (keyCode == KeyManager.getZoomInKey().getKeyBinding().getKeyCode()) {
             zoomBy(+2);
-            return;
+            return true;
         }
 
         if (keyCode == KeyManager.getZoomOutKey().getKeyBinding().getKeyCode()) {
             zoomBy(-2);
-            return;
+            return true;
         }
 
-        super.keyTyped(typedChar, keyCode);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override

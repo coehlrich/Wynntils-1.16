@@ -4,20 +4,23 @@
 
 package com.wynntils.core.utils;
 
+import com.wynntils.McIf;
 import com.wynntils.core.utils.objects.IntRange;
 import com.wynntils.core.utils.reference.EmeraldSymbols;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.profiles.item.enums.ItemType;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.INBT;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -121,7 +124,8 @@ public class ItemUtils {
         for (Entry<ItemType, String[]> e : WebManager.getMaterialTypes().entrySet()) {
             for (String id : e.getValue()) {
                 if (id.matches("[A-Za-z_:]+")) {
-                    if (Item.getByNameOrId(id).equals(item.getItem())) return e.getKey();
+                    if (GameRegistry.findRegistry(Item.class).getValue(new ResourceLocation(id)).equals(item.getItem()))
+                        return e.getKey();
                 } else {
                     int damageValue = 0;
 
@@ -138,7 +142,7 @@ public class ItemUtils {
         return null;
     }
 
-    private static final Item EMERALD_BLOCK = Item.byBlock(Blocks.EMERALD_BLOCK);
+    private static final Item EMERALD_BLOCK = Blocks.EMERALD_BLOCK.asItem();
 
     /**
      * @return the total amount of emeralds in an inventory, including blocks and le
@@ -152,11 +156,11 @@ public class ItemUtils {
             ItemStack it = inv.getItem(i);
             if (it.isEmpty()) continue;
 
-            if (it.getItem() == Items.EMERALD && it.getDisplayName().equals(TextFormatting.GREEN + "Emerald")) {
+            if (it.getItem() == Items.EMERALD && it.getDisplayName().getString().equals("Emerald")) {
                 money += it.getCount();
-            } else if (it.getItem() == EMERALD_BLOCK && it.getDisplayName().equals(TextFormatting.GREEN + "Emerald Block")) {
+            } else if (it.getItem() == EMERALD_BLOCK && it.getDisplayName().getString().equals("Emerald Block")) {
                 money += it.getCount() * 64;
-            } else if (it.getItem() == Items.EXPERIENCE_BOTTLE && it.getDisplayName().equals(TextFormatting.GREEN + "Liquid Emerald")) {
+            } else if (it.getItem() == Items.EXPERIENCE_BOTTLE && it.getDisplayName().getString().equals("Liquid Emerald")) {
                 money += it.getCount() * (64 * 64);
             }
         }

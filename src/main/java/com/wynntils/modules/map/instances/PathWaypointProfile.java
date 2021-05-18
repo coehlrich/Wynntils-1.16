@@ -131,11 +131,11 @@ public class PathWaypointProfile {
         return maxZ;
     }
 
-    public int getPosX() {
+    public int getX() {
         return posX;
     }
 
-    public int getPosZ() {
+    public int getZ() {
         return posZ;
     }
 

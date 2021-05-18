@@ -40,7 +40,8 @@ public enum PowderManualChapter {
     public static boolean isPowderManualLine(String line) {
         PowderManualChapter[] chapters = PowderManualChapter.values();
         for (PowderManualChapter chapter : chapters) {
-            if (StringUtils.stripControlCodes(chapter.getText()).contains(line)) return true;
+            if (StringUtils.stripColor(chapter.getText()).contains(line))
+                return true;
         }
         
         return false;

@@ -7,7 +7,6 @@ package com.wynntils.core.framework.entities;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.entities.instances.FakeEntity;
 import com.wynntils.core.utils.Utils;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
@@ -117,9 +116,9 @@ public class EntityManager {
                         // translates to the correctly entity position
                         // subtracting the viewer position offset
                         translate(
-                                next.currentLocation.x - renderManager.viewerPosX,
-                                next.currentLocation.y - renderManager.viewerPosY,
-                                next.currentLocation.z - renderManager.viewerPosZ
+                                next.currentLocation.x - renderManager.camera.getPosition().x,
+                                next.currentLocation.y - renderManager.camera.getPosition().y,
+                                next.currentLocation.z - renderManager.camera.getPosition().z
                         );
                         next.render(partialTicks, context, renderManager);
                     }

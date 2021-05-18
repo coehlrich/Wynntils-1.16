@@ -5,6 +5,7 @@
 package com.wynntils.modules.map.overlays.ui;
 
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.utils.Utils;
@@ -17,11 +18,8 @@ import com.wynntils.modules.map.overlays.enums.MapButtonType;
 import com.wynntils.modules.map.overlays.objects.MapButton;
 import com.wynntils.modules.music.managers.SoundTrackManager;
 import com.wynntils.webapi.WebManager;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.util.SoundEvents;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -226,7 +224,7 @@ public class MainWorldMapUI extends WorldMapUI {
     private void handleShareButton(boolean leftClick) {
         int x, z;
         String type;
-        if (isShiftKeyDown()) {
+        if (hasShiftDown()) {
             type = "compass";
             Location location = CompassManager.getCompassLocation();
             if (location == null) return;

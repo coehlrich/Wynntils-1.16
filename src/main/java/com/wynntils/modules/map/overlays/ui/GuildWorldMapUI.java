@@ -4,10 +4,12 @@
 
 package com.wynntils.modules.map.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.textures.Textures;
+import com.wynntils.core.utils.Utils;
 import com.wynntils.modules.map.MapModule;
 import com.wynntils.modules.map.configs.MapConfig;
 import com.wynntils.modules.map.instances.GuildResourceContainer;
@@ -15,17 +17,15 @@ import com.wynntils.modules.map.instances.MapProfile;
 import com.wynntils.modules.map.managers.GuildResourceManager;
 import com.wynntils.modules.map.overlays.enums.MapButtonType;
 import com.wynntils.modules.map.overlays.objects.MapTerritory;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.BufferBuilder;
 import com.wynntils.transition.GlStateManager;
+import net.java.games.input.Mouse;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
 
-import java.awt.*;
+import java.awt.Point;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -212,7 +212,7 @@ public class GuildWorldMapUI extends WorldMapUI {
 
     @Override
     protected void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (!holdingMapKey && keyCode == MapModule.getModule().getGuildMapKey().getKeyBinding().getKeyCode()) {
+        if (!holdingMapKey && keyCode == MapModule.getModule().getGuildMapKey().getKeyBinding().getKey().getValue()) {
             McIf.mc().setScreen(null);
             return;
         }

@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.map.overlays.objects;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;

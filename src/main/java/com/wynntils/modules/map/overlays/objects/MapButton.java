@@ -4,11 +4,11 @@
 
 package com.wynntils.modules.map.overlays.objects;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.textures.Textures;
 import com.wynntils.modules.map.overlays.enums.MapButtonType;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.util.SoundEvents;
 

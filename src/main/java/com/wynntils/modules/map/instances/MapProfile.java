@@ -7,17 +7,17 @@ package com.wynntils.modules.map.instances;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.utils.helpers.MD5Verification;
+import com.wynntils.transition.GlStateManager;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.WebReader;
 import com.wynntils.webapi.downloader.DownloaderManager;
 import com.wynntils.webapi.downloader.enums.DownloadAction;
 import com.wynntils.webapi.request.Request;
 import com.wynntils.webapi.request.RequestHandler;
-import net.minecraft.client.Minecraft;
-import com.wynntils.transition.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
 
 import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -74,7 +74,7 @@ public class MapProfile {
 
     private void setReadyToUse() {
         // make sure this is being called from the main thread
-        if (!McIf.mc().isCallingFromMinecraftThread()) {
+        if (!McIf.mc().isSameThread()) {
             McIf.mc().submit(this::setReadyToUse);
             return;
         }
@@ -94,14 +94,14 @@ public class MapProfile {
         BufferedImage img = ImageIO.read(mapFile);
         imageHeight = img.getHeight(); imageWidth = img.getWidth();
 
-        textureId = TextureUtil.uploadTextureImageAllocate(TextureUtil.glGenTextures(), img, false, false);
+        textureId = TextureUtil.uploadTextureImageAllocate(TextureUtil.generateTextureId(), img, false, false);
     }
 
     public void bind() throws Exception {
         if (!readyToUse) return;
         if (textureId == -20) setTexture();
 
-        GlStateManager.bind(textureId);
+        GlStateManager.bindTexture(textureId);
     }
 
     public float getTextureXPosition(double posX) {
