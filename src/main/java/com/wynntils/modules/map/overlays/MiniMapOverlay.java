@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.map.overlays;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -52,7 +53,7 @@ public class MiniMapOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre e) {
+    public void render(RenderGameOverlayEvent.Pre e, MatrixStack matrix) {
         if (!Reference.onWorld || e.getType() != RenderGameOverlayEvent.ElementType.ALL || !MapConfig.INSTANCE.enabled) return;
         if (!MapModule.getModule().getMainMap().isReadyToUse()) return;
 

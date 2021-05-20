@@ -14,15 +14,14 @@ import com.wynntils.core.framework.enums.ClassType;
 import com.wynntils.core.framework.enums.professions.ProfessionType;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.data.CharacterData;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.utils.reflections.ReflectionFields;
-import com.wynntils.core.utils.reflections.ReflectionMethods;
 import com.wynntils.modules.core.managers.GuildAndFriendManager;
 import net.minecraft.client.gui.screen.ConnectingScreen;
 import net.minecraft.client.gui.screen.DisconnectedScreen;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.server.SPlayerListItemPacket;
 import net.minecraft.network.play.server.SPlayerListItemPacket.Action;
+import net.minecraft.network.play.server.SPlayerListItemPacket.AddPlayerData;
 import net.minecraft.util.text.ChatType;
 import net.minecraft.util.text.Color;
 import net.minecraft.util.text.ITextComponent;
@@ -34,7 +33,6 @@ import net.minecraftforge.eventbus.api.Event;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
-import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -174,12 +172,12 @@ public class ClientEvents {
         if (e.getPacket().getAction() != Action.UPDATE_DISPLAY_NAME && e.getPacket().getAction() != Action.REMOVE_PLAYER) return;
 
         // DO NOT remove cast or reflection otherwise the build will fail
-        for (Object player : (List<?>) e.getPacket().getEntries()) {
+        for (AddPlayerData player : e.getPacket().getEntries()) {
             // world handling below
-            GameProfile profile = (GameProfile) ReflectionMethods.SPacketPlayerListItem$AddPlayerData_getProfile.invoke(player);
+            GameProfile profile = player.getProfile();
             if (profile.getId().equals(WORLD_UUID)) {
                 if (e.getPacket().getAction() == Action.UPDATE_DISPLAY_NAME) {
-                    ITextComponent nameComponent = (ITextComponent) ReflectionMethods.SPacketPlayerListItem$AddPlayerData_getDisplayName.invoke(player);
+                    ITextComponent nameComponent = player.getDisplayName();
                     if (nameComponent == null) continue;
                     String name = McIf.getUnformattedText(nameComponent);
                     String world = name.substring(name.indexOf("[") + 1, name.indexOf("]"));
@@ -222,7 +220,7 @@ public class ClientEvents {
     public void onTick(TickEvent.ClientTickEvent e) {
         if (e.phase != TickEvent.Phase.END) return;
 
-        ScreenRenderer.refresh();
+//        ScreenRenderer.refresh();
         if (!Reference.onServer || McIf.player() == null) return;
 
         FrameworkManager.triggerHudTick(e);

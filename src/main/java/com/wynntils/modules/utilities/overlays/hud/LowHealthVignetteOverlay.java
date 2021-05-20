@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -30,7 +31,7 @@ public class LowHealthVignetteOverlay extends Overlay {
     private static final float INTENSITY = .3f;
 
     @Override
-    public void render(RenderGameOverlayEvent.Post e) {
+    public void render(RenderGameOverlayEvent.Post e, MatrixStack matrix) {
         if (!Reference.onWorld || !OverlayConfig.Health.INSTANCE.healthVignette || e.getType() != RenderGameOverlayEvent.ElementType.ALL || currentHealth > threshold) {
             return;
         }

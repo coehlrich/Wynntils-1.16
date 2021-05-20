@@ -7,12 +7,9 @@ package com.wynntils;
 import com.wynntils.core.CoreManager;
 import com.wynntils.core.events.custom.ClientEvent;
 import com.wynntils.core.framework.FrameworkManager;
-import com.wynntils.core.framework.rendering.WynnRenderItem;
 import com.wynntils.modules.ModuleRegistry;
 import com.wynntils.modules.core.config.CoreDBConfig;
 import com.wynntils.modules.core.enums.UpdateStream;
-import com.wynntils.modules.map.MapModule;
-import com.wynntils.modules.map.configs.MapConfig;
 import com.wynntils.webapi.WebManager;
 import net.minecraftforge.fml.CrashReportExtender;
 import net.minecraftforge.fml.ModList;
@@ -22,7 +19,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLLoader;
-import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
 import net.minecraftforge.fml.loading.moddiscovery.ModInfo;
 import net.minecraftforge.forgespi.language.IModInfo;
 
@@ -36,7 +32,8 @@ public class ModCore {
     public static File jarFile = null;
     
     public ModCore() {
-		FMLJavaModLoadingContext.get().getModEventBus().addListener(null);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(this::setup);
+        WynntilsSounds.SOUNDS.register(FMLJavaModLoadingContext.get().getModEventBus());
 	}
     
     public void setup(FMLClientSetupEvent e) {
@@ -47,7 +44,7 @@ public class ModCore {
             Reference.BUILD_NUMBER = Integer.parseInt(splitDescription[splitDescription.length - 1]);
         } catch (NumberFormatException ignored) {}
 
-        jarFile = ((ModFileInfo) info).getFile().getFilePath().toFile();
+        jarFile = ((ModInfo) info).getOwningFile().getFile().getFilePath().toFile();
         Reference.developmentEnvironment = !FMLLoader.isProduction()
                 || (System.getProperty("wynntils.development") != null && System.getProperty("wynntils.development").equals("true"));
         // Reference.developmentEnvironment = false;  // Uncomment to test updater
@@ -75,7 +72,7 @@ public class ModCore {
         // TODO: uncomment
 //        if (!conflicts.isEmpty()) throw new ModConflictScreen(conflicts);
 
-        WynnRenderItem.inject();
+//        WynnRenderItem.inject();
 
         FrameworkManager.postEnableModules();
 
@@ -103,10 +100,10 @@ public class ModCore {
 //        MapApiIcon.resetApiMarkers();
 //        });
 
-        if (MapConfig.INSTANCE.enabledMapIcons.containsKey("tnt")) {
-            MapConfig.INSTANCE.enabledMapIcons = MapConfig.resetMapIcons(false);
-            MapConfig.INSTANCE.saveSettings(MapModule.getModule());
-        }
+//        if (MapConfig.INSTANCE.enabledMapIcons.containsKey("tnt")) {
+//            MapConfig.INSTANCE.enabledMapIcons = MapConfig.resetMapIcons(false);
+//            MapConfig.INSTANCE.saveSettings(MapModule.getModule());
+//        }
 
         CrashReportExtender.registerCrashCallable(new ICrashCallable() {
             @Override

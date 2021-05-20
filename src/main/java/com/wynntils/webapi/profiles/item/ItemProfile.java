@@ -4,7 +4,6 @@
 
 package com.wynntils.webapi.profiles.item;
 
-import com.wynntils.McIf;
 import com.wynntils.core.framework.enums.ClassType;
 import com.wynntils.core.framework.enums.DamageType;
 import com.wynntils.core.utils.StringUtils;
@@ -15,12 +14,10 @@ import com.wynntils.webapi.profiles.item.enums.MajorIdentification;
 import com.wynntils.webapi.profiles.item.objects.IdentificationContainer;
 import com.wynntils.webapi.profiles.item.objects.ItemInfoContainer;
 import com.wynntils.webapi.profiles.item.objects.ItemRequirementsContainer;
-import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.text.Style;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -270,7 +267,8 @@ public class ItemProfile {
 
             // item lore
             if (lore != null && !lore.isEmpty()) {
-                itemLore.addAll(McIf.mc().font.getSplitter().splitLines(DARK_GRAY + this.getLore(), 150, Style.EMPTY));
+                // TODO: uncomment
+//                itemLore.addAll(McIf.mc().font.getSplitter().splitLines(DARK_GRAY + this.getLore(), 150, Style.EMPTY));
             }
         }
 

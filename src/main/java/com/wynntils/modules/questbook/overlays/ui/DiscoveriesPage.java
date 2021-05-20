@@ -4,11 +4,11 @@
 
 package com.wynntils.modules.questbook.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.wynntils.McIf;
-import com.wynntils.core.framework.enums.wynntils.WynntilsSound;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.data.CharacterData;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.core.framework.rendering.textures.Textures;
@@ -19,7 +19,6 @@ import com.wynntils.modules.map.overlays.ui.MainWorldMapUI;
 import com.wynntils.modules.questbook.configs.QuestBookConfig;
 import com.wynntils.modules.questbook.enums.AnalysePosition;
 import com.wynntils.modules.questbook.enums.DiscoveryType;
-import com.wynntils.modules.questbook.enums.QuestBookPages;
 import com.wynntils.modules.questbook.instances.DiscoveryInfo;
 import com.wynntils.modules.questbook.instances.IconContainer;
 import com.wynntils.modules.questbook.instances.QuestBookPage;
@@ -29,11 +28,13 @@ import com.wynntils.webapi.profiles.DiscoveryProfile;
 import com.wynntils.webapi.profiles.TerritoryProfile;
 import com.wynntils.webapi.request.Request;
 import com.wynntils.webapi.request.RequestHandler;
+import net.minecraft.client.MainWindow;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.MainWindow;
-import com.wynntils.transition.GlStateManager;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 
@@ -54,6 +55,8 @@ public class DiscoveriesPage extends QuestBookPage {
     private boolean undiscoveredSecret = false;
     final static List<String> textLines =  Arrays.asList("Here you can see all", "the discoveries.", "", "You can use the filters below.");
 
+    private static final ResourceLocation DISCOVERIES = new ResourceLocation("wynntils", "textures/screens/quest_book/discoveries.png");
+
     public DiscoveriesPage() {
         super("Discoveries", true, IconContainer.discoveriesIcon);
     }
@@ -67,239 +70,239 @@ public class DiscoveriesPage extends QuestBookPage {
         int posY = (y - mouseY);
         hoveredText = new ArrayList<>();
 
-        ScreenRenderer.beginGL(0, 0);
-        {
-            // Explanatory Text
-            drawTextLines(textLines, x - 154, y - 30, 1);
+        matrix.pushPose();
+        // Explanatory Text
+        drawTextLines(textLines, x - 154, y - 30, 1);
 
-            // Back button
-            drawMenuButton(x, y, posX, posY);
+        // Back button
+        drawMenuButton(x, y, posX, posY);
+        Minecraft.getInstance().getTextureManager().bind(DISCOVERIES);
 
-            // World and Territory Progress icon
-            if (posX >= 81 && posX <= 97 && posY >= 84 && posY <= 100) {
-                render.drawRect(Textures.UIs.quest_book, x - 96, y - 100, 0, 271, 16, 16);
+        // World and Territory Progress icon
+        if (posX >= 81 && posX <= 97 && posY >= 84 && posY <= 100) {
+            blit(matrix, x - 96, y - 100, 0, 271, 16, 16);
 
-                hoveredText = new ArrayList<>(QuestManager.getDiscoveriesLore());
-                if (!hoveredText.isEmpty()) {
-                    hoveredText.remove(0);
+            hoveredText = new ArrayList<>(QuestManager.getDiscoveriesLore());
+            if (!hoveredText.isEmpty()) {
+                hoveredText.remove(0);
+            }
+        } else {
+            blit(matrix, x - 96, y - 100, 0, 255, 16, 16);
+        }
+
+        // Secret Progress Icon
+        if (posX >= 61 && posX <= 76 && posY >= 84 && posY <= 100) {
+            blit(matrix, x - 76, y - 100, 0, 303, 16, 16);
+
+            hoveredText = new ArrayList<>(QuestManager.getSecretDiscoveriesLore());
+            if (!hoveredText.isEmpty()) {
+                hoveredText.set(0, TextFormatting.AQUA + "Secret:");
+            }
+        } else {
+            blit(matrix, x - 76, y - 100, 0, 287, 16, 16);
+        }
+
+        // Next Page Button
+        drawForwardAndBackButtons(x, y, posX, posY, currentPage, pages);
+
+        // Discovered Territories Filter
+        if (mouseX >= x - 130 && mouseX <= x - 100 && mouseY >= y + 15 && mouseY <= y + 45) {
+            render.drawRect(selected_cube, x - 130, y + 15, x - 100, y + 45);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered Territory Discoveries", TextFormatting.GRAY + "Click to " + (territory ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 127, y + 20, 305, 283, 24, 20);
+        } else {
+            render.drawRect((territory ? selected_cube_2 : unselected_cube), x - 130, y + 15, x - 100, y + 45);
+            render.drawRect(Textures.UIs.quest_book, x - 127, y + 20, 305, 263, 24, 20);
+        }
+
+        // Undiscovered Territories Filter
+        if (mouseX >= x - 130 && mouseX <= x - 100 && mouseY >= y + 50 && mouseY <= y + 80) {
+            render.drawRect(selected_cube, x - 130, y + 50, x - 100, y + 80);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered Territory Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredTerritory ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 126, y + 55, 283, 323, 21, 19);
+        } else {
+            render.drawRect((undiscoveredTerritory ? selected_cube_2 : unselected_cube), x - 130, y + 50, x - 100, y + 80);
+            render.drawRect(Textures.UIs.quest_book, x - 121, y + 55, 288, 304, 11, 19);
+        }
+
+        // Discovered World Filter
+        if (mouseX >= x - 95 && mouseX <= x - 65 && mouseY >= y + 15 && mouseY <= y + 45) {
+            render.drawRect(selected_cube, x - 95, y + 15, x - 65, y + 45);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered World Discoveries", TextFormatting.GRAY + "Click to " + (world ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 89, y + 20, 307, 241, 18, 20);
+        } else {
+            render.drawRect((world ? selected_cube_2 : unselected_cube), x - 95, y + 15, x - 65, y + 45);
+            render.drawRect(Textures.UIs.quest_book, x - 89, y + 20, 307, 221, 18, 20);
+        }
+
+        // Undiscovered World Filter
+        if (mouseX >= x - 95 && mouseX <= x - 65 && mouseY >= y + 50 && mouseY <= y + 80) {
+            render.drawRect(selected_cube, x - 95, y + 50, x - 65, y + 80);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered World Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredWorld ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 91, y + 56, 306, 322, 21, 17);
+        } else {
+            render.drawRect((undiscoveredWorld ? selected_cube_2 : unselected_cube), x - 95, y + 50, x - 65, y + 80);
+            render.drawRect(Textures.UIs.quest_book, x - 89, y + 56, 308, 305, 17, 17);
+        }
+
+        // Discovered Secret Filter
+        if (mouseX >= x - 60 && mouseX <= x - 30 && mouseY >= y + 15 && mouseY <= y + 45) {
+            render.drawRect(selected_cube, x - 60, y + 15, x - 30, y + 45);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered Secret Discoveries", TextFormatting.GRAY + "Click to " + (secret ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 55, y + 21, 284, 284, 20, 18);
+        } else {
+            render.drawRect((secret ? selected_cube_2 : unselected_cube), x - 60, y + 15, x - 30, y + 45);
+            render.drawRect(Textures.UIs.quest_book, x - 55, y + 21, 284, 265, 20, 18);
+        }
+
+        // Undiscovered Secret Filter
+        if (mouseX >= x - 60 && mouseX <= x - 30 && mouseY >= y + 50 && mouseY <= y + 80) {
+            render.drawRect(selected_cube, x - 60, y + 50, x - 30, y + 80);
+            hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered Secret Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredSecret ? "hide" : "show"));
+            render.drawRect(Textures.UIs.quest_book, x - 54, y + 57, 263, 324, 17, 16);
+        } else {
+            render.drawRect((undiscoveredSecret ? selected_cube_2 : unselected_cube), x - 60, y + 50, x - 30, y + 80);
+            render.drawRect(Textures.UIs.quest_book, x - 54, y + 58, 263, 306, 17, 14);
+        }
+
+        // Page Text
+        render.drawString(currentPage + " / " + pages, x + 80, y + 88, CommonColors.BLACK, SmartFontRenderer.TextAlignment.MIDDLE, SmartFontRenderer.TextShadow.NONE);
+
+        // Reload Data button
+        if (posX >= -157 && posX <= -147 && posY >= 89 && posY <= 99) {
+            hoveredText = Arrays.asList("Reload Button!", TextFormatting.GRAY + "Reloads all discovery data.");
+            render.drawRect(Textures.UIs.quest_book, x + 147, y - 99, x + 158, y - 88, 218, 281, 240, 303);
+        } else {
+            render.drawRect(Textures.UIs.quest_book, x + 147, y - 99, x + 158, y - 88, 240, 281, 262, 303);
+        }
+
+        // Draw all Discoveries
+        int currentY = 12;
+        if (discoverySearch.size() > 0) {
+            for (int i = ((currentPage - 1) * 13); i < 13 * currentPage; i++) {
+                if (discoverySearch.size() <= i) {
+                    break;
                 }
-            } else {
-                render.drawRect(Textures.UIs.quest_book, x - 96, y - 100, 0, 255, 16, 16);
-            }
 
-            // Secret Progress Icon
-            if (posX >= 61 && posX <= 76 && posY >= 84 && posY <= 100) {
-                render.drawRect(Textures.UIs.quest_book, x - 76, y - 100, 0, 303, 16, 16);
-
-                hoveredText = new ArrayList<>(QuestManager.getSecretDiscoveriesLore());
-                if (!hoveredText.isEmpty()) {
-                    hoveredText.set(0, TextFormatting.AQUA + "Secret:");
+                DiscoveryInfo selected;
+                try {
+                    selected = discoverySearch.get(i);
+                } catch (IndexOutOfBoundsException e) {
+                    break;
                 }
-            } else {
-                render.drawRect(Textures.UIs.quest_book, x - 76, y - 100, 0, 287, 16, 16);
-            }
 
-            // Next Page Button
-            drawForwardAndBackButtons(x, y, posX, posY, currentPage, pages);
+                List<String> lore = new ArrayList<>(selected.getLore());
 
-            // Discovered Territories Filter
-            if (mouseX >= x - 130 && mouseX <= x - 100 && mouseY >= y + 15 && mouseY <= y + 45) {
-                render.drawRect(selected_cube, x - 130, y + 15, x - 100, y + 45);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered Territory Discoveries", TextFormatting.GRAY + "Click to " + (territory ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 127, y + 20, 305, 283, 24, 20);
-            } else {
-                render.drawRect((territory ? selected_cube_2 : unselected_cube), x - 130, y + 15, x - 100, y + 45);
-                render.drawRect(Textures.UIs.quest_book, x - 127, y + 20, 305, 263, 24, 20);
-            }
-
-            // Undiscovered Territories Filter
-            if (mouseX >= x - 130 && mouseX <= x - 100 && mouseY >= y + 50 && mouseY <= y + 80) {
-                render.drawRect(selected_cube, x - 130, y + 50, x - 100, y + 80);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered Territory Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredTerritory ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 126, y + 55, 283, 323, 21, 19);
-            } else {
-                render.drawRect((undiscoveredTerritory ? selected_cube_2 : unselected_cube), x - 130, y + 50, x - 100, y + 80);
-                render.drawRect(Textures.UIs.quest_book, x - 121, y + 55, 288, 304, 11, 19);
-            }
-
-            // Discovered World Filter
-            if (mouseX >= x - 95 && mouseX <= x - 65 && mouseY >= y + 15 && mouseY <= y + 45) {
-                render.drawRect(selected_cube, x - 95, y + 15, x - 65, y + 45);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered World Discoveries", TextFormatting.GRAY + "Click to " + (world ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 89, y + 20, 307, 241, 18, 20);
-            } else {
-                render.drawRect((world ? selected_cube_2 : unselected_cube), x - 95, y + 15, x - 65, y + 45);
-                render.drawRect(Textures.UIs.quest_book, x - 89, y + 20, 307, 221, 18, 20);
-            }
-
-            // Undiscovered World Filter
-            if (mouseX >= x - 95 && mouseX <= x - 65 && mouseY >= y + 50 && mouseY <= y + 80) {
-                render.drawRect(selected_cube, x - 95, y + 50, x - 65, y + 80);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered World Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredWorld ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 91, y + 56, 306, 322, 21, 17);
-            } else {
-                render.drawRect((undiscoveredWorld ? selected_cube_2 : unselected_cube), x - 95, y + 50, x - 65, y + 80);
-                render.drawRect(Textures.UIs.quest_book, x - 89, y + 56, 308, 305, 17, 17);
-            }
-
-            // Discovered Secret Filter
-            if (mouseX >= x - 60 && mouseX <= x - 30 && mouseY >= y + 15 && mouseY <= y + 45) {
-                render.drawRect(selected_cube, x - 60, y + 15, x - 30, y + 45);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Discovered Secret Discoveries", TextFormatting.GRAY + "Click to " + (secret ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 55, y + 21, 284, 284, 20, 18);
-            } else {
-                render.drawRect((secret ? selected_cube_2 : unselected_cube), x - 60, y + 15, x - 30, y + 45);
-                render.drawRect(Textures.UIs.quest_book, x - 55, y + 21, 284, 265, 20, 18);
-            }
-
-            // Undiscovered Secret Filter
-            if (mouseX >= x - 60 && mouseX <= x - 30 && mouseY >= y + 50 && mouseY <= y + 80) {
-                render.drawRect(selected_cube, x - 60, y + 50, x - 30, y + 80);
-                hoveredText = Arrays.asList(TextFormatting.GREEN + "[>] Undiscovered Secret Discoveries", TextFormatting.GRAY + "Click to " + (undiscoveredSecret ? "hide" : "show"));
-                render.drawRect(Textures.UIs.quest_book, x - 54, y + 57, 263, 324, 17, 16);
-            } else {
-                render.drawRect((undiscoveredSecret ? selected_cube_2 : unselected_cube), x - 60, y + 50, x - 30, y + 80);
-                render.drawRect(Textures.UIs.quest_book, x - 54, y + 58, 263, 306, 17, 14);
-            }
-
-            // Page Text
-            render.drawString(currentPage + " / " + pages, x + 80, y + 88, CommonColors.BLACK, SmartFontRenderer.TextAlignment.MIDDLE, SmartFontRenderer.TextShadow.NONE);
-
-            // Reload Data button
-            if (posX >= -157 && posX <= -147 && posY >= 89 && posY <= 99) {
-                hoveredText = Arrays.asList("Reload Button!", TextFormatting.GRAY + "Reloads all discovery data.");
-                render.drawRect(Textures.UIs.quest_book, x + 147, y - 99, x + 158, y - 88, 218, 281, 240, 303);
-            } else {
-                render.drawRect(Textures.UIs.quest_book, x + 147, y - 99, x + 158, y - 88, 240, 281, 262, 303);
-            }
-
-            // Draw all Discoveries
-            int currentY = 12;
-            if (discoverySearch.size() > 0) {
-                for (int i = ((currentPage - 1) * 13); i < 13 * currentPage; i++) {
-                    if (discoverySearch.size() <= i) {
-                        break;
+                if (posX >= -146 && posX <= -13 && posY >= 87 - currentY && posY <= 96 - currentY && !showAnimation) {
+                    if (lastTick == 0 && !animationCompleted) {
+                        lastTick = McIf.getSystemTime();
                     }
 
-                    DiscoveryInfo selected;
-                    try {
-                        selected = discoverySearch.get(i);
-                    } catch (IndexOutOfBoundsException e) {
-                        break;
-                    }
+                    this.selected = i;
 
-                    List<String> lore = new ArrayList<>(selected.getLore());
-
-                    if (posX >= -146 && posX <= -13 && posY >= 87 - currentY && posY <= 96 - currentY && !showAnimation) {
-                        if (lastTick == 0 && !animationCompleted) {
-                            lastTick = McIf.getSystemTime();
-                        }
-
-                        this.selected = i;
-
-                        int animationTick;
-                        if (!animationCompleted) {
-                            animationTick = (int) (McIf.getSystemTime() - lastTick) / 2;
-                            if (animationTick >= 133) {
-                                animationCompleted = true;
-                                animationTick = 133;
-                            }
-                        } else {
+                    int animationTick;
+                    if (!animationCompleted) {
+                        animationTick = (int) (McIf.getSystemTime() - lastTick) / 2;
+                        if (animationTick >= 133) {
+                            animationCompleted = true;
                             animationTick = 133;
                         }
-
-                        render.drawRectF(background_1, x + 9, y - 96 + currentY, x + 13 + animationTick, y - 87 + currentY);
-                        render.drawRectF(background_2, x + 9, y - 96 + currentY, x + 146, y - 87 + currentY);
-
-                        overDiscovery = selected;
-                        hoveredText = lore;
-                        GlStateManager.disableLighting();
                     } else {
-                        if (this.selected == i) {
-                            animationCompleted = false;
-
-                            if (!showAnimation) lastTick = 0;
-                            overDiscovery = null;
-                        }
-
-                        render.drawRectF(background_2, x + 13, y - 96 + currentY, x + 146, y - 87 + currentY);
+                        animationTick = 133;
                     }
 
-                    render.color(1, 1, 1, 1);
+                    render.drawRectF(background_1, x + 9, y - 96 + currentY, x + 13 + animationTick, y - 87 + currentY);
+                    render.drawRectF(background_2, x + 9, y - 96 + currentY, x + 146, y - 87 + currentY);
 
-                    // Guild territory lore actions
-                    if (selected.getGuildTerritoryProfile() != null) {
-                        if (!lore.get(lore.size() - 1).contentEquals(""))
-                            lore.add("");
-
-                        lore.add(TextFormatting.GREEN + (TextFormatting.BOLD + "Left click to set compass beacon!"));
-                        lore.add(TextFormatting.YELLOW + (TextFormatting.BOLD + "Right click to view on the map!"));
-                    }
-
-                    // Secret Discovery Actions
-                    if (selected.getType() == DiscoveryType.SECRET) {
-                        if (!lore.get(lore.size() - 1).contentEquals(""))
-                            lore.add("");
-
-                        if (QuestBookConfig.INSTANCE.spoilSecretDiscoveries.followsRule(selected.wasDiscovered())) {
-                            lore.add(TextFormatting.GREEN + (TextFormatting.BOLD + "Left click to set compass beacon!"));
-                            lore.add(TextFormatting.YELLOW + (TextFormatting.BOLD + "Right click to view on map!"));
-                        }
-
-                        lore.add(TextFormatting.GOLD + (TextFormatting.BOLD + "Middle click to open on the wiki!"));
-                    }
-
-                    // Removes blank space at the end of lores
-                    if (lore.get(lore.size() - 1).contentEquals(""))
-                        lore.remove(selected.getLore().size() - 1);
-
-
-                    if (selected.wasDiscovered()) {
-                        switch (selected.getType()) {
-                            case TERRITORY:
-                                render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 264, 235, 11, 7);
-                            break;
-                            case WORLD:
-                                render.drawRect(Textures.UIs.quest_book, x + 16, y - 95 + currentY, 276, 235, 7, 7);
-                            break;
-                            case SECRET:
-                                render.drawRect(Textures.UIs.quest_book, x + 15, y - 95 + currentY, 255, 235, 8, 7);
-                            break;
-                        }
-                    } else {
-                        switch (selected.getType()) {
-                            case TERRITORY:
-                                render.drawRect(Textures.UIs.quest_book, x + 15, y - 95 + currentY, 241, 273, 8, 7);
-                            break;
-                            case WORLD:
-                                render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 250, 273, 11, 7);
-                            break;
-                            case SECRET:
-                                render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 229, 273, 11, 7);
-                            break;
-                        }
-                    }
-
-                    render.drawString(selected.getFriendlyName(), x + 26, y - 95 + currentY, CommonColors.BLACK, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
-
-                    currentY += 13;
-                }
-            } else {
-                String textToDisplay;
-                if (!(territory || world || secret || undiscoveredTerritory || undiscoveredWorld || undiscoveredSecret)) {
-                    textToDisplay = "No filters enabled!\nTry refining your search.";
-                } else if (QuestManager.getCurrentDiscoveries().size() == 0 || textField.getText().equals("")) {
-                    textToDisplay = "Loading Discoveries...\nIf nothing appears soon, try pressing the reload button.";
+                    overDiscovery = selected;
+                    hoveredText = lore;
+                    GlStateManager.disableLighting();
                 } else {
-                    textToDisplay = "No discoveries found!\nTry searching for something else.";
+                    if (this.selected == i) {
+                        animationCompleted = false;
+
+                        if (!showAnimation)
+                            lastTick = 0;
+                        overDiscovery = null;
+                    }
+
+                    render.drawRectF(background_2, x + 13, y - 96 + currentY, x + 146, y - 87 + currentY);
                 }
 
-                for (String line : textToDisplay.split("\n")) {
-                    currentY += render.drawSplitString(line, 120, x + 26, y - 95 + currentY, 10, CommonColors.BLACK, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE) * 10 + 2;
+                render.color(1, 1, 1, 1);
+
+                // Guild territory lore actions
+                if (selected.getGuildTerritoryProfile() != null) {
+                    if (!lore.get(lore.size() - 1).contentEquals(""))
+                        lore.add("");
+
+                    lore.add(TextFormatting.GREEN + (TextFormatting.BOLD + "Left click to set compass beacon!"));
+                    lore.add(TextFormatting.YELLOW + (TextFormatting.BOLD + "Right click to view on the map!"));
                 }
+
+                // Secret Discovery Actions
+                if (selected.getType() == DiscoveryType.SECRET) {
+                    if (!lore.get(lore.size() - 1).contentEquals(""))
+                        lore.add("");
+
+                    if (QuestBookConfig.INSTANCE.spoilSecretDiscoveries.followsRule(selected.wasDiscovered())) {
+                        lore.add(TextFormatting.GREEN + (TextFormatting.BOLD + "Left click to set compass beacon!"));
+                        lore.add(TextFormatting.YELLOW + (TextFormatting.BOLD + "Right click to view on map!"));
+                    }
+
+                    lore.add(TextFormatting.GOLD + (TextFormatting.BOLD + "Middle click to open on the wiki!"));
+                }
+
+                // Removes blank space at the end of lores
+                if (lore.get(lore.size() - 1).contentEquals(""))
+                    lore.remove(selected.getLore().size() - 1);
+
+
+                if (selected.wasDiscovered()) {
+                    switch (selected.getType()) {
+                    case TERRITORY:
+                        render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 264, 235, 11, 7);
+                        break;
+                    case WORLD:
+                        render.drawRect(Textures.UIs.quest_book, x + 16, y - 95 + currentY, 276, 235, 7, 7);
+                        break;
+                    case SECRET:
+                        render.drawRect(Textures.UIs.quest_book, x + 15, y - 95 + currentY, 255, 235, 8, 7);
+                        break;
+                    }
+                } else {
+                    switch (selected.getType()) {
+                    case TERRITORY:
+                        render.drawRect(Textures.UIs.quest_book, x + 15, y - 95 + currentY, 241, 273, 8, 7);
+                        break;
+                    case WORLD:
+                        render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 250, 273, 11, 7);
+                        break;
+                    case SECRET:
+                        render.drawRect(Textures.UIs.quest_book, x + 14, y - 95 + currentY, 229, 273, 11, 7);
+                        break;
+                    }
+                }
+
+                render.drawString(selected.getFriendlyName(), x + 26, y - 95 + currentY, CommonColors.BLACK, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
+
+                currentY += 13;
+            }
+        } else {
+            String textToDisplay;
+            if (!(territory || world || secret || undiscoveredTerritory || undiscoveredWorld || undiscoveredSecret)) {
+                textToDisplay = "No filters enabled!\nTry refining your search.";
+            } else if (QuestManager.getCurrentDiscoveries().size() == 0 || textField.getText().equals("")) {
+                textToDisplay = "Loading Discoveries...\nIf nothing appears soon, try pressing the reload button.";
+            } else {
+                textToDisplay = "No discoveries found!\nTry searching for something else.";
+            }
+
+            for (String line : textToDisplay.split("\n")) {
+                currentY += render.drawSplitString(line, 120, x + 26, y - 95 + currentY, 10, CommonColors.BLACK, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE) * 10 + 2;
             }
         }
-        ScreenRenderer.endGL();
+        matrix.popPose();
         renderHoveredText(mouseX, mouseY);
     }
 
@@ -491,7 +494,7 @@ public class DiscoveriesPage extends QuestBookPage {
 
         pages = discoverySearch.size() <= 13 ? 1 : (int) Math.ceil(discoverySearch.size() / 13d);
         currentPage = Math.min(currentPage, pages);
-        refreshAccepts();
+        updatePage();
     }
 
     @Override
@@ -503,8 +506,19 @@ public class DiscoveriesPage extends QuestBookPage {
     }
 
     @Override
-    public List<String> getHoveredDescription() {
-        return Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Discoveries", TextFormatting.GRAY + "See and sort all", TextFormatting.GRAY + "of the discoveries.", "", TextFormatting.GREEN + "Left click to select");
+    public List<ITextComponent> getHoveredDescription() {
+        return Arrays.asList(
+                new StringTextComponent("[>] ")
+                        .withStyle(TextFormatting.GOLD)
+                        .append(new StringTextComponent("Discoveries")
+                                .withStyle(TextFormatting.BOLD)),
+                new StringTextComponent("See and sort all")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("of the discoveries.")
+                        .withStyle(TextFormatting.GRAY),
+                StringTextComponent.EMPTY,
+                new StringTextComponent("Left click to select")
+                        .withStyle(TextFormatting.GREEN));
     }
 
     /**
@@ -547,15 +561,15 @@ public class DiscoveriesPage extends QuestBookPage {
             }
 
             switch (action) {
-                case "compass":
-                    CompassManager.setCompassLocation(new Location(x, 50, z));
+            case "compass":
+                CompassManager.setCompassLocation(new Vector3d(x, 50, z));
                 break;
-                case "map":
-                    Utils.setScreen(new MainWorldMapUI(x, z));
+            case "map":
+                Minecraft.getInstance().setScreen(new MainWorldMapUI(x, z));
                 break;
-                case "both":
-                    Utils.setScreen(new MainWorldMapUI(x, z));
-                    CompassManager.setCompassLocation(new Location(x, 50, z));
+            case "both":
+                Minecraft.getInstance().setScreen(new MainWorldMapUI(x, z));
+                CompassManager.setCompassLocation(new Vector3d(x, 50, z));
                 break;
             }
 

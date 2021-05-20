@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.data.CharacterData;
@@ -57,7 +58,7 @@ public class ExpBarOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         switch (OverlayConfig.Exp.INSTANCE.expTexture) {
             case Wynn:
                 drawDefaultBar(0, 5, 0, 9);

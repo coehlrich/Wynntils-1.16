@@ -6,13 +6,13 @@ package com.wynntils.modules.visual.instances;
 
 import com.wynntils.McIf;
 import com.wynntils.Reference;
+import com.wynntils.transition.GlStateManager;
 import com.wynntils.webapi.downloader.DownloaderManager;
 import com.wynntils.webapi.downloader.enums.DownloadAction;
-import net.minecraft.client.Minecraft;
-import com.wynntils.transition.GlStateManager;
 import net.minecraft.client.renderer.texture.TextureUtil;
 
 import javax.imageio.ImageIO;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 
@@ -45,7 +45,7 @@ public class SplashProfile {
 
     private void setReadyToUse() {
         // make sure this is being called from the main thread
-        if (!McIf.mc().isCallingFromMinecraftThread()) {
+        if (!McIf.mc().isSameThread()) {
             McIf.mc().submit(this::setReadyToUse);
             return;
         }

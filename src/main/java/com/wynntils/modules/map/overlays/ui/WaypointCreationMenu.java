@@ -4,11 +4,11 @@
 
 package com.wynntils.modules.map.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.core.framework.rendering.colors.CustomColor;
-import com.wynntils.core.framework.ui.UI;
 import com.wynntils.core.framework.ui.elements.UIEColorWheel;
 import com.wynntils.core.utils.StringUtils;
 import com.wynntils.core.utils.Utils;
@@ -17,16 +17,16 @@ import com.wynntils.modules.map.configs.MapConfig;
 import com.wynntils.modules.map.instances.WaypointProfile;
 import com.wynntils.modules.map.instances.WaypointProfile.WaypointType;
 import com.wynntils.modules.map.overlays.objects.MapWaypointIcon;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
+import net.java.games.input.Keyboard;
 import net.minecraft.client.gui.screen.GuiLabel;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.client.gui.widget.button.Button;
 import org.lwjgl.glfw.GLFW;
 
 import java.io.IOException;
 
-public class WaypointCreationMenu extends UI {
+public class WaypointCreationMenu extends Screen {
     private GuiLabel nameFieldLabel;
     private TextFieldWidget nameField;
     private GuiLabel xCoordFieldLabel;

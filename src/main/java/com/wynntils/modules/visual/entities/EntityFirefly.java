@@ -6,14 +6,14 @@ package com.wynntils.modules.visual.entities;
 
 import com.wynntils.core.framework.entities.instances.FakeEntity;
 import com.wynntils.core.framework.rendering.textures.Textures;
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.visual.configs.VisualConfig;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.util.math.vector.Vector3d;
 import org.lwjgl.opengl.GL11;
 
 import java.util.Random;
@@ -30,13 +30,13 @@ public class EntityFirefly extends FakeEntity {
     float alpha;
 
     // movement
-    Location nextGoal;
-    Location origin;
+    Vector3d nextGoal;
+    Vector3d origin;
     float velocity = 1f;
     float nextChange = 0;
     float currentPosition = 0;
 
-    public EntityFirefly(Location currentLocation, float r, float g, float b) {
+    public EntityFirefly(Vector3d currentLocation, float r, float g, float b) {
         super(currentLocation);
 
         this.r = r;
@@ -59,8 +59,8 @@ public class EntityFirefly extends FakeEntity {
         }
 
         // generates a random location with a 3 blocks radius based on the last one
-        origin = currentLocation.clone();
-        nextGoal = currentLocation.clone().add(
+        origin = currentLocation;
+        nextGoal = currentLocation.add(
                 r.nextInt(3) * (r.nextBoolean() ? 1 : -1),
                 r.nextInt(3) * (r.nextBoolean() ? 1 : -1),
                 r.nextInt(3) * (r.nextBoolean() ? 1 : -1));
@@ -91,14 +91,14 @@ public class EntityFirefly extends FakeEntity {
 
         float smooth = (float) Math.sin((Math.PI / 2d) * percentage);
 
-        Location increase = nextGoal.clone().subtract(origin).multiply(smooth);
-        currentLocation = origin.clone().add(increase);
+        Vector3d increase = nextGoal.subtract(origin).scale(smooth);
+        currentLocation = origin.add(increase);
     }
 
     @Override
     public void render(float partialTicks, WorldRenderer context, EntityRendererManager render) {
         float alpha = (1 - (livingTicks / (float)lifespan));
-        boolean thirdPerson = render.options.thirdPersonView == 2;
+        boolean thirdPerson = render.options.getCameraType().isMirrored() && !render.options.getCameraType().isFirstPerson();
         //FIXME: use render.options.getCameraType(), but what does the code mean? 3rd person is 1 & 2
         boolean threeDimensions = VisualConfig.Fireflies.INSTANCE.threeDimensions;
 
@@ -110,8 +110,8 @@ public class EntityFirefly extends FakeEntity {
             color(1f, 1f, 1f, alpha);
 
             if (!threeDimensions) {
-                rotate(-render.playerViewY, 0f, 1f, 0f); // rotates yaw
-                rotate((float) (thirdPerson ? -1 : 1) * render.playerViewX, 1.0F, 0.0F, 0.0F); // rotates pitch
+                rotate(-render.camera.getYRot(), 0f, 1f, 0f); // rotates yaw
+                rotate((float) (thirdPerson ? -1 : 1) * render.camera.getXRot(), 1.0F, 0.0F, 0.0F); // rotates pitch
             }
 
             scale(VisualConfig.Fireflies.INSTANCE.scale, VisualConfig.Fireflies.INSTANCE.scale, VisualConfig.Fireflies.INSTANCE.scale);
@@ -124,14 +124,14 @@ public class EntityFirefly extends FakeEntity {
         Tessellator tes = Tessellator.getInstance();
         BufferBuilder buffer = tes.getBuilder();
         { // drawing
-            buffer.begin(threeDimensions ? GL11.GL_TRIANGLE_STRIP : GL11.GL_QUADS, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
+            buffer.begin(threeDimensions ? GL11.GL_TRIANGLE_STRIP : GL11.GL_QUADS, DefaultVertexFormats.POSITION_COLOR_TEX_LIGHTMAP);
 
             // vertexes
             if (!threeDimensions) {
-                buffer.vertex(-.5, .5, 0).uv(0, 1f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
-                buffer.vertex(.5, .5, 0).uv(1f, 1f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
-                buffer.vertex(.5, -.5, 0).uv(1f, 0f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
-                buffer.vertex(-.5, -.5, 0).uv(0, 0f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
+//                buffer.vertex(-.5, .5, 0).uv(0, 1f).color(r, g, b, alpha).applyBakedLighting(0, 15728880).endVertex();
+//                buffer.vertex(.5, .5, 0).uv(1f, 1f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
+//                buffer.vertex(.5, -.5, 0).uv(1f, 0f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
+//                buffer.vertex(-.5, -.5, 0).uv(0, 0f).color(r, g, b, alpha).lightmap(0, 15728880).endVertex();
             } else generateVertexBox(buffer, -.5, -.5, -.5, .5, .5, .5, r, g, b, alpha);
 
             tes.end();
@@ -146,43 +146,43 @@ public class EntityFirefly extends FakeEntity {
     }
 
     private void generateVertexBox(BufferBuilder builder, double x1, double y1, double z1, double x2, double y2, double z2, float red, float green, float blue, float alpha) {
-        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-
-        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
-        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y1, z1).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z1).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x1, y1, z2).uv(0f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y1, z2).uv(1f, 0f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x1, y2, z1).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x1, y2, z2).uv(0f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y2, z1).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//
+//        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
+//        builder.vertex(x2, y2, z2).uv(1f, 1f).color(red, green, blue, alpha).lightmap(0, 15728880).endVertex();
     }
 
     @Override

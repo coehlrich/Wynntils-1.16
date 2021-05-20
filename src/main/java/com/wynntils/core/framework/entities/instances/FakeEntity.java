@@ -4,10 +4,10 @@
 
 package com.wynntils.core.framework.entities.instances;
 
-import com.wynntils.core.utils.objects.Location;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.WorldRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.util.math.vector.Vector3d;
 
 import java.util.Random;
 import java.util.UUID;
@@ -28,7 +28,7 @@ public class FakeEntity {
 
     public UUID uuid = UUID.randomUUID();
     public long livingTicks = 0;
-    public Location currentLocation;
+    public Vector3d currentLocation;
 
     private boolean toRemove = false;
 
@@ -38,7 +38,7 @@ public class FakeEntity {
      *
      * @param currentLocation the spawn location
      */
-    public FakeEntity(Location currentLocation) {
+    public FakeEntity(Vector3d currentLocation) {
         this.currentLocation = currentLocation;
     }
 
@@ -85,7 +85,7 @@ public class FakeEntity {
     /**
      * @return The Entity current world location
      */
-    public Location getCurrentLocation() {
+    public Vector3d getCurrentLocation() {
         return currentLocation;
     }
 
@@ -122,7 +122,7 @@ public class FakeEntity {
      * Updates the current location of the entity
      * @param currentLocation the provided location
      */
-    public void setCurrentLocation(Location currentLocation) {
+    public void setCurrentLocation(Vector3d currentLocation) {
         this.currentLocation = currentLocation;
     }
 

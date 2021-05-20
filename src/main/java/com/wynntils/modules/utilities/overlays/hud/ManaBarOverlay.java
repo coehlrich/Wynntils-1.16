@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.data.CharacterData;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -43,7 +44,7 @@ public class ManaBarOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         switch (OverlayConfig.Mana.INSTANCE.manaTexture) {
             case Wynn:
                 drawDefaultBar(-1, 8, 0, 17, textColor);

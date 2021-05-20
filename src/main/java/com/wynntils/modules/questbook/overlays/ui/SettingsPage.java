@@ -8,6 +8,8 @@ import com.wynntils.McIf;
 import com.wynntils.core.framework.settings.ui.SettingsUI;
 import com.wynntils.modules.questbook.instances.IconContainer;
 import com.wynntils.modules.questbook.instances.QuestBookPage;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 import java.util.Arrays;
@@ -24,7 +26,18 @@ public class SettingsPage extends QuestBookPage {
     }
 
     @Override
-    public List<String> getHoveredDescription() {
-        return Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Configuration", TextFormatting.GRAY + "Change the settings", TextFormatting.GRAY + "to the way you want.", "", TextFormatting.RED + "BETA VERSION", TextFormatting.GREEN + "Left click to select");
+    public List<ITextComponent> getHoveredDescription() {
+        return Arrays.asList(
+                new StringTextComponent("[>] ")
+                        .withStyle(TextFormatting.GOLD)
+                        .append(new StringTextComponent("Configuration")
+                                .withStyle(TextFormatting.BOLD)),
+                new StringTextComponent("Change the settings")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("to the way you want.")
+                        .withStyle(TextFormatting.GRAY),
+                StringTextComponent.EMPTY,
+                new StringTextComponent("Left click to select")
+                        .withStyle(TextFormatting.GREEN));
     }
 }

@@ -11,7 +11,6 @@ import com.wynntils.core.events.custom.SpellEvent;
 import com.wynntils.core.events.custom.WynnClassChangeEvent;
 import com.wynntils.core.framework.FrameworkManager;
 import com.wynntils.core.utils.Utils;
-import com.wynntils.core.utils.objects.Location;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.item.ArmorStandEntity;
@@ -20,6 +19,8 @@ import net.minecraft.network.play.server.SDestroyEntitiesPacket;
 import net.minecraft.network.play.server.SEntityMetadataPacket;
 import net.minecraft.network.play.server.SEntityTeleportPacket;
 import net.minecraft.network.play.server.SSpawnObjectPacket;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.eventbus.api.Event;
 
 import java.util.Arrays;
@@ -182,14 +183,15 @@ public class TotemTracker {
     public void onTotemRename(PacketEvent<SEntityMetadataPacket> e) {
         if (!Reference.onWorld) return;
 
-        String name = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
-        if (name == null || name.isEmpty()) return;
+        ITextComponent name = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
+        if (name == null || name.getString().isEmpty())
+            return;
 
         Entity entity = getBufferedEntity(e.getPacket().getId());
         if (!(entity instanceof ArmorStandEntity)) return;
 
         if (totemState == TotemState.PREPARING || totemState == TotemState.ACTIVE) {
-            Matcher m = SHAMAN_TOTEM_TIMER.matcher(name);
+            Matcher m = SHAMAN_TOTEM_TIMER.matcher(name.getString());
             if (m.find()) {
                 // We got a armor stand with a timer nametag
                 if (totemState == TotemState.PREPARING ) {
@@ -212,11 +214,11 @@ public class TotemTracker {
                     if (totemTime == -1) {
                         totemTime = time;
                         totemState = TotemState.ACTIVE;
-                        postEvent(new SpellEvent.TotemActivated(totemTime, new Location(totemX, totemY, totemZ)));
+                        postEvent(new SpellEvent.TotemActivated(totemTime, new Vector3d(totemX, totemY, totemZ)));
                     } else if (time != totemTime) {
                         if (time > totemTime) {
                             // Timer restarted using uproot
-                            postEvent(new SpellEvent.TotemRenewed(time, new Location(totemX, totemY, totemZ)));
+                            postEvent(new SpellEvent.TotemRenewed(time, new Vector3d(totemX, totemY, totemZ)));
                         }
                         totemTime = time;
                     }
@@ -225,21 +227,21 @@ public class TotemTracker {
             }
         }
 
-        Matcher m2 = MOB_TOTEM_NAME.matcher(name);
+        Matcher m2 = MOB_TOTEM_NAME.matcher(name.getString());
         if (m2.find()) {
             int mobTotemId = e.getPacket().getId();
 
             MobTotem mobTotem = new MobTotem(mobTotemId,
-                    new Location(entity.getX(), entity.getY() - 4.5, entity.getZ()), m2.group(1));
+                    new Vector3d(entity.getX(), entity.getY() - 4.5, entity.getZ()), m2.group(1));
 
             mobTotemUnstarted.put(mobTotemId, mobTotem);
             return;
         }
 
         for (MobTotem mobTotem : mobTotemUnstarted.values()) {
-            if (entity.getX() == mobTotem.getLocation().getX() && entity.getZ() == mobTotem.getLocation().getZ()
-                    && entity.getY() == mobTotem.getLocation().getY() + 4.7) {
-                Matcher m3 = MOB_TOTEM_TIMER.matcher(name);
+            if (entity.getX() == mobTotem.getLocation().x && entity.getZ() == mobTotem.getLocation().z
+                    && entity.getY() == mobTotem.getLocation().y + 4.7) {
+                Matcher m3 = MOB_TOTEM_TIMER.matcher(name.getString());
                 if (m3.find()) {
                     int minutes = Integer.parseInt(m3.group(1));
                     int seconds = Integer.parseInt(m3.group(2));
@@ -290,10 +292,10 @@ public class TotemTracker {
 
     public static class MobTotem {
         private final int totemId;
-        private final Location location;
+        private final Vector3d location;
         private final String owner;
 
-        public MobTotem(int totemId, Location location, String owner) {
+        public MobTotem(int totemId, Vector3d location, String owner) {
             this.totemId = totemId;
             this.location = location;
             this.owner = owner;
@@ -303,7 +305,7 @@ public class TotemTracker {
             return totemId;
         }
 
-        public Location getLocation() {
+        public Vector3d getLocation() {
             return location;
         }
 

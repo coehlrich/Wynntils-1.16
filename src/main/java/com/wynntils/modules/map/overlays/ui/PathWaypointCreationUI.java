@@ -287,14 +287,14 @@ public class PathWaypointCreationUI extends WorldMapUI {
 
     @Override
     public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        boolean isShiftKeyDown = isShiftKeyDown();
+        boolean isShiftKeyDown = hasShiftDown();
 
         updatePosition(mouseX, mouseY, !nameField.isFocused() && isShiftKeyDown && clicking[0] && !clicking[1]);
         if (isShiftKeyDown && clicking[1]) {
             updateCenterPositionWithPlayerPosition();
         }
 
-        hidden = hiddenBox.isChecked();
+        hidden = hiddenBox.selected();
         setCircular();
 
         ScreenRenderer.beginGL(0, 0);

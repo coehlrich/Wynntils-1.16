@@ -9,6 +9,8 @@ import com.wynntils.core.framework.settings.ui.OverlayPositionsUI;
 import com.wynntils.core.framework.ui.UI;
 import com.wynntils.modules.questbook.instances.IconContainer;
 import com.wynntils.modules.questbook.instances.QuestBookPage;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 
 import java.util.Arrays;
@@ -27,7 +29,22 @@ public class HUDConfigPage extends QuestBookPage {
     }
 
     @Override
-    public List<String> getHoveredDescription() {
-        return Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Overlay Configuration", TextFormatting.GRAY + "Change position", TextFormatting.GRAY + "and enable/disable", TextFormatting.GRAY + "the various", TextFormatting.GRAY + "Wynntils overlays.", "", TextFormatting.GREEN + "Left click to select");
+    public List<ITextComponent> getHoveredDescription() {
+        return Arrays.asList(
+                new StringTextComponent("[>] ")
+                        .withStyle(TextFormatting.GOLD)
+                        .append(new StringTextComponent("Overlay Configuration")
+                                .withStyle(TextFormatting.BOLD)),
+                new StringTextComponent("Change position")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("and enable/disable")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("the various")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("Wynntils overlays")
+                        .withStyle(TextFormatting.GRAY),
+                StringTextComponent.EMPTY,
+                new StringTextComponent("Left click to select")
+                        .withStyle(TextFormatting.GREEN));
     }
 }

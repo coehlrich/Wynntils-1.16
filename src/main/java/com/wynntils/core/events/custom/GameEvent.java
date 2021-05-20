@@ -7,8 +7,8 @@ package com.wynntils.core.events.custom;
 import com.wynntils.core.framework.enums.DamageType;
 import com.wynntils.core.framework.enums.professions.GatheringMaterial;
 import com.wynntils.core.framework.enums.professions.ProfessionType;
-import com.wynntils.core.utils.objects.Location;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.eventbus.api.Event;
 
 import java.util.Map;
@@ -126,9 +126,9 @@ public class GameEvent extends Event {
         double xpAmount;
         double xpPercentage;
 
-        Location location;
+        Vector3d location;
 
-        public ResourceGather(ProfessionType type, GatheringMaterial material, int materialAmount, double xpAmount, double xpPercentage, Location location) {
+        public ResourceGather(ProfessionType type, GatheringMaterial material, int materialAmount, double xpAmount, double xpPercentage, Vector3d location) {
             this.type = type;
             this.material = material;
             this.materialAmount = materialAmount;
@@ -157,7 +157,7 @@ public class GameEvent extends Event {
             return xpAmount;
         }
 
-        public Location getLocation() {
+        public Vector3d getLocation() {
             return location;
         }
 

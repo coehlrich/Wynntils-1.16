@@ -85,7 +85,7 @@ public class LayerFoxEars implements LayerRenderer<AbstractClientPlayer> {
         bipedFoxEarL.rotateAngleZ = playerRenderer.getMainModel().bipedHeadwear.rotateAngleZ * (scale/2);
 
         ReflectionFields.ModelRenderer_compiled.setValue(bipedFoxEarL, false);
-        bipedFoxEarL.render(scale / 2);
+        bipedFoxEarL.render(scale / 2, null);
     }
 
     public void renderModelR(AbstractClientPlayer player, ModelBase model, float scale) {
@@ -104,7 +104,7 @@ public class LayerFoxEars implements LayerRenderer<AbstractClientPlayer> {
         bipedFoxEarR.rotateAngleZ = playerRenderer.getMainModel().bipedHeadwear.rotateAngleZ * (scale/2);
 
         ReflectionFields.ModelRenderer_compiled.setValue(bipedFoxEarR, false);
-        bipedFoxEarR.render(scale/2);
+        bipedFoxEarR.render(scale/2, null);
     }
 
     public boolean shouldCombineTextures() {

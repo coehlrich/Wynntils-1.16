@@ -6,28 +6,20 @@ package com.wynntils.modules.utilities.instances;
 
 import com.wynntils.McIf;
 import com.wynntils.Reference;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufInputStream;
-import io.netty.buffer.Unpooled;
-import io.netty.handler.codec.base64.Base64;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.network.ServerPinger;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.TextureUtil;
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
 import org.apache.commons.lang3.Validate;
 
-import java.awt.image.BufferedImage;
 import java.lang.ref.WeakReference;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ServerIcon {
@@ -66,7 +58,7 @@ public class ServerIcon {
     }
 
     public static synchronized void ping() {
-        pinger.pingPendingNetworks();
+        pinger.tick();
 
         if (instances.isEmpty()) return;
 
@@ -84,7 +76,7 @@ public class ServerIcon {
             }
         }
 
-        pinger.pingPendingNetworks();
+        pinger.tick();
     }
 
     private void pingImpl() {
@@ -94,17 +86,19 @@ public class ServerIcon {
                 return;
             }
             server.pinged = true;
-            server.pingToServer = -2L;
-            server.serverMOTD = "";
-            server.populationInfo = "";
+            server.ping = -2L;
+            server.motd = StringTextComponent.EMPTY;
+            server.playerList = Collections.EMPTY_LIST;
             try {
-                pinger.ping(server);
+                pinger.pingServer(server, () -> {});
             } catch (UnknownHostException ignored) {
-                server.pingToServer = -1L;
-                server.serverMOTD = TextFormatting.DARK_RED + I18n.format("multiplayer.status.cannot_resolve");
+                server.ping = -1L;
+                server.motd = new TranslationTextComponent("multiplayer.status.cannot_resolve")
+                        .withStyle(TextFormatting.DARK_RED);
             } catch (Exception ignored) {
-                server.pingToServer = -1L;
-                server.serverMOTD = TextFormatting.DARK_RED + I18n.format("multiplayer.status.cannot_connect");
+                server.ping = -1L;
+                server.motd = new TranslationTextComponent("multiplayer.status.cannot_connect")
+                        .withStyle(TextFormatting.DARK_RED);
             }
         }
     }
@@ -117,7 +111,7 @@ public class ServerIcon {
     }
 
     public synchronized boolean isDone() {
-        return Objects.equals(server.getBase64EncodedIconData(), lastIcon);
+        return Objects.equals(server.getIconB64(), lastIcon);
     }
 
     private synchronized void onDone() {
@@ -135,7 +129,7 @@ public class ServerIcon {
 
     // Modified from net.minecraft.client.gui.screen.ServerListEntryNormal$prepareServerIcon
     public synchronized ResourceLocation getServerIcon() {
-        String currentIcon = server.getBase64EncodedIconData();
+        String currentIcon = server.getIconB64();
         if (Objects.equals(currentIcon, lastIcon)) return icon == null ? null : serverIcon;
 
         lastIcon = currentIcon;
@@ -147,44 +141,25 @@ public class ServerIcon {
             return null;
         }
 
-        BufferedImage bufferedimage;
         try {
-            bufferedimage = parseServerIcon(lastIcon);
+            NativeImage nativeimage = NativeImage.fromBase64(currentIcon);
+            Validate.validState(nativeimage.getWidth() == 64, "Must be 64 pixels wide");
+            Validate.validState(nativeimage.getHeight() == 64, "Must be 64 pixels high");
+            if (this.icon == null) {
+                this.icon = new DynamicTexture(nativeimage);
+            } else {
+                this.icon.setPixels(nativeimage);
+                this.icon.upload();
+            }
+
+            Minecraft.getInstance().getTextureManager().register(serverIcon, this.icon);
+            onDone();
+            return serverIcon;
         } catch (Throwable throwable) {
-            Reference.LOGGER.error("Invalid icon for server " + server.serverName + " (" + server.ip + ")", throwable);
-            server.setBase64EncodedIconData(null);
+            Reference.LOGGER.error("Invalid icon for server " + server.name + " (" + server.ip + ")", throwable);
+            server.setIconB64(null);
             onDone();
             return null;
-        }
-
-        if (icon == null) {
-            icon = new DynamicTexture(bufferedimage.getWidth(), bufferedimage.getHeight());
-            McIf.mc().getTextureManager().loadTexture(serverIcon, icon);
-        }
-
-        bufferedimage.getRGB(0, 0, bufferedimage.getWidth(), bufferedimage.getHeight(), icon.getTextureData(), 0, bufferedimage.getWidth());
-        icon.updateDynamicTexture();
-        onDone();
-        return serverIcon;
-    }
-
-    public static BufferedImage parseServerIcon(String base64) throws Throwable {
-
-        ByteBuf bytebuf = Unpooled.copiedBuffer(base64, StandardCharsets.UTF_8);
-        ByteBuf bytebuf1 = null;
-        BufferedImage bufferedimage;
-        try {
-            bytebuf1 = Base64.decode(bytebuf);
-            bufferedimage = TextureUtil.readBufferedImage(new ByteBufInputStream(bytebuf1));
-            Validate.validState(bufferedimage.getWidth() == 64, "Must be 64 pixels wide");
-            Validate.validState(bufferedimage.getHeight() == 64, "Must be 64 pixels high");
-            return bufferedimage;
-        } finally {
-            bytebuf.release();
-
-            if (bytebuf1 != null) {
-                bytebuf1.release();
-            }
         }
     }
 

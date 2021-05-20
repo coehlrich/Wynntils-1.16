@@ -7,6 +7,7 @@ package com.wynntils.modules.utilities.overlays.hud;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.events.custom.GuiOverlapEvent;
@@ -227,7 +228,7 @@ public class ObjectivesOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!Reference.onWorld || !OverlayConfig.Objectives.INSTANCE.enableObjectives ||
                 event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
 

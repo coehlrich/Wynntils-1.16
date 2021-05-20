@@ -19,8 +19,6 @@ import com.wynntils.core.framework.instances.data.CharacterData;
 import com.wynntils.core.framework.interfaces.Listener;
 import com.wynntils.core.utils.ItemUtils;
 import com.wynntils.core.utils.Utils;
-import com.wynntils.core.utils.objects.Location;
-import com.wynntils.core.utils.reflections.ReflectionFields;
 import com.wynntils.modules.core.instances.GatheringBake;
 import com.wynntils.modules.core.instances.MainMenuButtons;
 import com.wynntils.modules.core.instances.TotemTracker;
@@ -30,20 +28,14 @@ import com.wynntils.modules.core.overlays.inventories.ChestReplacer;
 import com.wynntils.modules.core.overlays.inventories.HorseReplacer;
 import com.wynntils.modules.core.overlays.inventories.IngameMenuReplacer;
 import com.wynntils.modules.core.overlays.inventories.InventoryReplacer;
-import com.wynntils.modules.utilities.UtilitiesModule;
-import net.minecraft.block.material.Material;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.gui.screen.IngameMenuScreen;
+import net.minecraft.block.material.Material;
 import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.inventory.ChestScreen;
-import net.minecraft.client.gui.screen.inventory.InventoryScreen;
-import net.minecraft.client.gui.screen.inventory.HorseInventoryScreen;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.item.ArmorStandEntity;
 import net.minecraft.entity.item.ItemFrameEntity;
-import net.minecraft.entity.passive.horse.AbstractHorseEntity;
 import net.minecraft.entity.player.ChatVisibility;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -53,17 +45,20 @@ import net.minecraft.network.play.server.*;
 import net.minecraft.scoreboard.ScorePlayerTeam;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3i;
 import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.GuiOpenEvent;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderWorldLastEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.EntityLeaveWorldEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,28 +93,28 @@ public class ClientEvents implements Listener {
      */
     @SubscribeEvent
     public void onGuiOpened(GuiOpenEvent e) {
-        if (e.getGui() instanceof InventoryScreen) {
-            if (e.getGui() instanceof InventoryReplacer) return;
-
-            e.setGui(new InventoryReplacer(McIf.player()));
-            return;
-        }
-        if (e.getGui() instanceof ChestScreen) {
-            if (e.getGui() instanceof ChestReplacer) return;
-
-            e.setGui(new ChestReplacer(McIf.player().inventory, ReflectionFields.GuiChest_lowerChestInventory.getValue(e.getGui())));
-            return;
-        }
-        if (e.getGui() instanceof HorseInventoryScreen) {
-            if (e.getGui() instanceof HorseReplacer) return;
-
-            e.setGui(new HorseReplacer(McIf.player().inventory, ReflectionFields.HorseInventoryScreen_horseInventory.getValue(e.getGui()), (AbstractHorseEntity) ReflectionFields.HorseInventoryScreen_horseEntity.getValue(e.getGui())));
-        }
-        if (e.getGui() instanceof IngameMenuScreen) {
-            if (e.getGui() instanceof IngameMenuReplacer) return;
-
-            e.setGui(new IngameMenuReplacer());
-        }
+//        if (e.getGui() instanceof InventoryScreen) {
+//            if (e.getGui() instanceof InventoryReplacer) return;
+//
+//            e.setGui(new InventoryReplacer(McIf.player()));
+//            return;
+//        }
+//        if (e.getGui() instanceof ChestScreen) {
+//            if (e.getGui() instanceof ChestReplacer) return;
+//
+//            e.setGui(new ChestReplacer(McIf.player().inventory, ReflectionFields.GuiChest_lowerChestInventory.getValue(e.getGui())));
+//            return;
+//        }
+//        if (e.getGui() instanceof HorseInventoryScreen) {
+//            if (e.getGui() instanceof HorseReplacer) return;
+//
+//            e.setGui(new HorseReplacer(McIf.player().inventory, ReflectionFields.HorseInventoryScreen_horseInventory.getValue(e.getGui()), (AbstractHorseEntity) ReflectionFields.HorseInventoryScreen_horseEntity.getValue(e.getGui())));
+//        }
+//        if (e.getGui() instanceof IngameMenuScreen) {
+//            if (e.getGui() instanceof IngameMenuReplacer) return;
+//
+//            e.setGui(new IngameMenuReplacer());
+//        }
     }
 
     public static final Pattern GATHERING_STATUS = Pattern.compile("\\[\\+([0-9]*) [ⒸⒷⒿⓀ] (.*?) XP\\] \\[([0-9]*)%\\]");
@@ -131,11 +126,11 @@ public class ClientEvents implements Listener {
 
     @SubscribeEvent
     public void workAroundWynncraftNPEBug(PacketEvent<STeamsPacket> e) {
-        if (e.getPacket().getAction() == 1) {
+        if (e.getPacket().getMethod() == 1) {
             ScorePlayerTeam scoreplayerteam;
 
             Scoreboard scoreboard = McIf.world().getScoreboard();
-            scoreplayerteam = scoreboard.getTeam(e.getPacket().getName());
+            scoreplayerteam = scoreboard.getPlayerTeam(e.getPacket().getName());
             if (scoreplayerteam == null) {
                 // This would cause an NPE so cancel it
                 e.setCanceled(true);
@@ -143,35 +138,35 @@ public class ClientEvents implements Listener {
         }
     }
 
-    @SubscribeEvent
-    public void cancelSomeVelocity(PacketEvent<SEntityVelocityPacket> e) {
-        // I'm not sure what this does, but the code has been here a long time,
-        // just moving it here. /magicus, 2021
-        SEntityVelocityPacket velocity = e.getPacket();
-        if (McIf.world() != null) {
-            Entity entity = McIf.world().getEntity(velocity.getId());
-            Entity vehicle = McIf.player().getLowestRidingEntity();
-            if ((entity == vehicle) && (vehicle != McIf.player()) && (vehicle.canPassengerSteer())) {
-                e.setCanceled(true);
-            }
-        }
-    }
-
-    @SubscribeEvent
-    public void cancelSomeMovements(PacketEvent<SMoveVehiclePacket> e) {
-        // I'm not sure what this does, but the code has been here a long time,
-        // just moving it here. /magicus, 2021
-        SMoveVehiclePacket moveVehicle = e.getPacket();
-        Entity vehicle = McIf.player().getLowestRidingEntity();
-        if ((vehicle == McIf.player()) || (!vehicle.canPassengerSteer()) || (vehicle.distanceTo(moveVehicle.getX(), moveVehicle.getY(), moveVehicle.getZ()) <= 25D)) {
-            e.setCanceled(true);
-        }
-    }
+//    @SubscribeEvent
+//    public void cancelSomeVelocity(PacketEvent<SEntityVelocityPacket> e) {
+//        // I'm not sure what this does, but the code has been here a long time,
+//        // just moving it here. /magicus, 2021
+//        SEntityVelocityPacket velocity = e.getPacket();
+//        if (McIf.world() != null) {
+//            Entity entity = McIf.world().getEntity(velocity.getId());
+//            Entity vehicle = McIf.player().getLowestRidingEntity();
+//            if ((entity == vehicle) && (vehicle != McIf.player()) && (vehicle.canPassengerSteer())) {
+//                e.setCanceled(true);
+//            }
+//        }
+//    }
+//
+//    @SubscribeEvent
+//    public void cancelSomeMovements(PacketEvent<SMoveVehiclePacket> e) {
+//        // I'm not sure what this does, but the code has been here a long time,
+//        // just moving it here. /magicus, 2021
+//        SMoveVehiclePacket moveVehicle = e.getPacket();
+//        Entity vehicle = McIf.player().getLowestRidingEntity();
+//        if ((vehicle == McIf.player()) || (!vehicle.canPassengerSteer()) || (vehicle.distanceTo(moveVehicle.getX(), moveVehicle.getY(), moveVehicle.getZ()) <= 25D)) {
+//            e.setCanceled(true);
+//        }
+//    }
 
     @SubscribeEvent
     public void findLabels(PacketEvent<SEntityMetadataPacket> e) {
         // makes this method always be called in main thread
-        if (!McIf.mc().isCallingFromMinecraftThread()) {
+        if (!McIf.mc().isSameThread()) {
             McIf.mc().submit(() -> findLabels(e));
             return;
         }
@@ -183,35 +178,38 @@ public class ClientEvents implements Listener {
         if (i instanceof ItemFrameEntity) {
             ItemStack item = Utils.getItemFromMetadata(e.getPacket().getUnpackedData());
             if (item.hasCustomHoverName()) {
-                FrameworkManager.getEventBus().post(new LocationEvent.LabelFoundEvent(item.getDisplayName(), new Location(i), i));
+                FrameworkManager.getEventBus().post(new LocationEvent.LabelFoundEvent(item.getDisplayName(), i.position(), i));
             }
         } else if (i instanceof LivingEntity) {
             boolean visible = Utils.isNameVisibleFromMetadata(e.getPacket().getUnpackedData());
             if (!visible) return;
 
-            String value = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
-            if (value == null || value.isEmpty()) return;
+            ITextComponent value = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
+            if (value == null || value.getString().isEmpty())
+                return;
 
-            FrameworkManager.getEventBus().post(new LocationEvent.EntityLabelFoundEvent(value, new Location(i), (LivingEntity) i));
+            FrameworkManager.getEventBus().post(new LocationEvent.EntityLabelFoundEvent(value, i.position(), (LivingEntity) i));
         } else if (i instanceof ArmorStandEntity) {
             boolean visible = Utils.isNameVisibleFromMetadata(e.getPacket().getUnpackedData());
             if (!visible) return;
 
-            String value = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
-            if (value == null || value.isEmpty()) return;
+            ITextComponent value = Utils.getNameFromMetadata(e.getPacket().getUnpackedData());
+            if (value == null || value.getString().isEmpty())
+                return;
 
-            FrameworkManager.getEventBus().post(new LocationEvent.LabelFoundEvent(value, new Location(i), i));
+            FrameworkManager.getEventBus().post(new LocationEvent.LabelFoundEvent(value, i.position(), i));
         }
     }
 
     @SubscribeEvent
     public void checkGatherLabelFound(LocationEvent.LabelFoundEvent event) {
-        String value = event.getLabel();
-        Location loc = event.getLocation();
+        String value = event.getLabel().getString();
+        Vector3d loc = event.getLocation();
         Entity i = event.getEntity();
 
-        if (value.contains("Combat") || value.contains("Guild")) return;
-        value = McIf.getTextWithoutFormattingCodes(value);
+        if (value.contains("Combat") || value.contains("Guild"))
+            return;
+//        value = value.getString();
 
         Matcher m = GATHERING_STATUS.matcher(value);
         if (m.matches()) { // first, gathering status
@@ -237,9 +235,9 @@ public class ClientEvents implements Listener {
         // below the center block there's a barrier, which is what we are looking for
         // it ALWAYS have 4 blocks at it sides that we use to detect it
         if (bakeStatus.getType() == ProfessionType.WOODCUTTING) {
-            Iterable<BlockPos> positions = BlockPos.getAllInBox(
-                    i.getPosition().subtract(new Vec3i(-5, -3, -5)),
-                    i.getPosition().subtract(new Vec3i(+5, +3, +5)));
+            Iterable<BlockPos> positions = BlockPos.betweenClosed(
+                    new BlockPos(i.position()).subtract(new Vector3i(-5, -3, -5)),
+                    new BlockPos(i.position()).subtract(new Vector3i(+5, +3, +5)));
 
             for (BlockPos position : positions) {
                 if (Utils.isAirBlock(i.level, position)) continue;
@@ -254,7 +252,7 @@ public class ClientEvents implements Listener {
                         || Utils.isAirBlock(i.level, position.east())
                         || Utils.isAirBlock(i.level, position.west())) continue;
 
-                loc = new Location(position);
+                loc = new Vector3d(position.getX(), position.getY(), position.getZ());
                 break;
             }
         }
@@ -269,7 +267,7 @@ public class ClientEvents implements Listener {
 
     @SubscribeEvent
     public void checkDamageLabelFound(LocationEvent.LabelFoundEvent event) {
-        String value = McIf.getTextWithoutFormattingCodes(event.getLabel());
+        String value = event.getLabel().getString();
         Entity i = event.getEntity();
         Map<DamageType, Integer> damageList = new HashMap<>();
 
@@ -289,15 +287,16 @@ public class ClientEvents implements Listener {
     public void updateActionBar(PacketEvent<SChatPacket> e) {
         if (!Reference.onServer || e.getPacket().getType() != ChatType.GAME_INFO) return;
 
+        // TODO: uncomment
         PlayerInfo.get(ActionBarData.class).updateActionBar(McIf.getUnformattedText(e.getPacket().getMessage()));
-        if (UtilitiesModule.getModule().getActionBarOverlay().active) e.setCanceled(true); // only disable when the wynntils action bar is enabled
+//        if (UtilitiesModule.getModule().getActionBarOverlay().active) e.setCanceled(true); // only disable when the wynntils action bar is enabled
     }
 
     @SubscribeEvent
     public void updateChatVisibility(PacketEvent<CClientSettingsPacket> e) {
         if (e.getPacket().getChatVisibility() != ChatVisibility.HIDDEN) return;
 
-        ReflectionFields.CClientSettingsPacket_chatVisibility.setValue(e.getPacket(), PlayerEntity.EnumChatVisibility.FULL);
+//        ReflectionFields.CClientSettingsPacket_chatVisibility.setValue(e.getPacket(), PlayerEntity.EnumChatVisibility.FULL);
     }
 
     /**
@@ -316,7 +315,7 @@ public class ClientEvents implements Listener {
      */
     @SubscribeEvent
     public void processFakeEntities(RenderWorldLastEvent e) {
-        EntityManager.renderEntities(e.getPartialTicks(), e.getContext());
+        EntityManager.renderEntities(e.getPartialTicks(), e.getContext(), e.getMatrixStack());
     }
 
     @SubscribeEvent
@@ -337,21 +336,10 @@ public class ClientEvents implements Listener {
 
         if (gui instanceof MainMenuScreen) {
             boolean resize = lastScreen != null && lastScreen instanceof MainMenuScreen;
-            MainMenuButtons.addButtons((MainMenuScreen) gui, e.getButtonList(), resize);
+            MainMenuButtons.addButtons(e, resize);
         }
 
         lastScreen = gui;
-    }
-
-    /**
-     *  Handles the main menu new buttons actions
-     */
-    @SubscribeEvent
-    public void mainMenuActionPerformed(GuiScreenEvent.ActionPerformedEvent.Post e) {
-        Screen gui = e.getGui();
-        if (gui != McIf.mc().screen || !(gui instanceof MainMenuScreen)) return;
-
-        MainMenuButtons.actionPerformed((MainMenuScreen) gui, e.getButton(), e.getButtonList());
     }
 
     @SubscribeEvent
@@ -376,12 +364,12 @@ public class ClientEvents implements Listener {
 
         if (e.getMouseButton() != 0
             || e.getSlotIn() == null
-            || !e.getSlotIn().getHasStack()
+            || !e.getSlotIn().hasItem()
             || !e.getSlotIn().getItem().hasCustomHoverName()
-            || !e.getSlotIn().getItem().getDisplayName().contains("[>] Select")) return;
+            || !e.getSlotIn().getItem().getDisplayName().getString().contains("[>] Select")) return;
 
 
-        get(CharacterData.class).setClassId(e.getSlot());
+        get(CharacterData.class).setClassId(e.getSlotId());
 
         String classLore = ItemUtils.getLore(e.getSlotIn().getItem()).get(1);
         String className = classLore.substring(classLore.indexOf(TextFormatting.WHITE.toString()) + 2);
@@ -431,11 +419,6 @@ public class ClientEvents implements Listener {
     }
 
     @SubscribeEvent
-    public void onWorldLoad(WorldEvent.Load e) {
-        PlayerEntityManager.onWorldLoad(e.getWorld());
-    }
-
-    @SubscribeEvent
     public void onWorldUnload(WorldEvent.Unload e) {
         PlayerEntityManager.onWorldUnload();
     }
@@ -444,12 +427,21 @@ public class ClientEvents implements Listener {
     public void entityJoin(EntityJoinWorldEvent e) {
         if (!(e.getEntity() instanceof PlayerEntity)) return;
         PlayerEntity player = (PlayerEntity) e.getEntity();
-        if (player.getProfile() == null) return;
+        PlayerEntityManager.onPlayerJoin(player);
+        if (player.getGameProfile() == null)
+            return;
 
-        String name = player.getProfile().getName();
+        String name = player.getGameProfile().getName();
         if (name.contains("\u0001") || name.contains("§")) return; // avoid player npcs
 
         UserManager.loadUser(e.getEntity().getUUID());
+    }
+
+    @SubscribeEvent
+    public void entityLeave(EntityLeaveWorldEvent e) {
+        if (e.getEntity() instanceof PlayerEntity) {
+            PlayerEntityManager.onPlayerLeave((PlayerEntity) e.getEntity());
+        }
     }
 
     @SubscribeEvent

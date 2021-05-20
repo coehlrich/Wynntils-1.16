@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.data.ActionBarData;
@@ -34,7 +35,7 @@ public class ActionBarOverlay extends Overlay {
     transient int highlightTicks;
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!Reference.onWorld) return;
 
         String lastActionBar = get(ActionBarData.class).getLastActionBar();

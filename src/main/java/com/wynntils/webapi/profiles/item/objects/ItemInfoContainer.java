@@ -8,6 +8,8 @@ import com.wynntils.webapi.profiles.item.enums.ItemDropType;
 import com.wynntils.webapi.profiles.item.enums.ItemType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.fml.common.registry.GameRegistry;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,7 +65,9 @@ public class ItemInfoContainer {
 
     public ItemStack asItemStack() {
         if (material == null) {
-            return new ItemStack(type.getDefaultItem(), 1, type.getMeta());
+            ItemStack stack = new ItemStack(type.getDefaultItem());
+            stack.setDamageValue(type.getMeta());
+            return stack;
         }
 
         if (material.matches("(.*\\d.*)")) {
@@ -76,7 +80,7 @@ public class ItemInfoContainer {
             return stack;
         }
 
-        return new ItemStack(Item.getByNameOrId(material));
+        return new ItemStack(GameRegistry.findRegistry(Item.class).getValue(new ResourceLocation(material)));
     }
 
 }

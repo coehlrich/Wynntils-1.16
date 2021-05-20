@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.data.CharacterData;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -38,7 +39,7 @@ public class LevelingOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         CharacterData data = get(CharacterData.class);
         if (((event.getType() == RenderGameOverlayEvent.ElementType.EXPERIENCE) || (event.getType() == RenderGameOverlayEvent.ElementType.JUMPBAR)) && Reference.onWorld && data.isLoaded()) {
             String text = OverlayConfig.Leveling.INSTANCE.levelingText.replace("%actual%", "" + data.getCurrentXP())

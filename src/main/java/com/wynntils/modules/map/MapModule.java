@@ -10,10 +10,6 @@ import com.wynntils.core.framework.enums.Priority;
 import com.wynntils.core.framework.instances.KeyHolder;
 import com.wynntils.core.framework.instances.Module;
 import com.wynntils.core.framework.interfaces.annotations.ModuleInfo;
-import com.wynntils.core.utils.Utils;
-import com.wynntils.modules.map.commands.CommandDetection;
-import com.wynntils.modules.map.commands.CommandLocate;
-import com.wynntils.modules.map.commands.CommandLootRun;
 import com.wynntils.modules.map.configs.MapConfig;
 import com.wynntils.modules.map.events.ClientEvents;
 import com.wynntils.modules.map.instances.MapProfile;
@@ -24,7 +20,6 @@ import com.wynntils.modules.map.overlays.ui.MainWorldMapUI;
 import com.wynntils.modules.map.overlays.ui.WaypointCreationMenu;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.WebReader;
-import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import org.lwjgl.glfw.GLFW;
 
@@ -58,9 +53,10 @@ public class MapModule extends Module {
 
         registerOverlay(new MiniMapOverlay(), Priority.LOWEST);
 
-        registerCommand(new CommandLootRun());
-        registerCommand(new CommandLocate());
-        registerCommand(new CommandDetection());
+        // TODO: add commands
+//        registerCommand(new CommandLootRun());
+//        registerCommand(new CommandLocate());
+//        registerCommand(new CommandDetection());
 
         registerKeyBinding("New Waypoint", GLFW.GLFW_KEY_B, "Wynntils", KeyConflictContext.IN_GAME, true, () -> {
             if (Reference.onWorld)
@@ -72,7 +68,7 @@ public class MapModule extends Module {
                 if (WebManager.getApiUrls() == null) {
                     WebManager.tryReloadApiUrls(true);
                 } else {
-                    Utils.setScreen(new MainWorldMapUI());
+                    McIf.mc().setScreen(new MainWorldMapUI());
                 }
             }
         });
@@ -82,7 +78,7 @@ public class MapModule extends Module {
                 if (WebManager.getApiUrls() == null) {
                     WebManager.tryReloadApiUrls(true);
                 } else {
-                    Utils.setScreen(new GuildWorldMapUI());
+                    McIf.mc().setScreen(new GuildWorldMapUI());
                 }
             }
         });

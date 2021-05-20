@@ -7,13 +7,12 @@ package com.wynntils.modules.questbook.managers;
 
 import com.wynntils.McIf;
 import com.wynntils.Reference;
+import com.wynntils.WynntilsSounds;
 import com.wynntils.core.framework.FrameworkManager;
 import com.wynntils.core.framework.enums.FilterType;
-import com.wynntils.core.framework.enums.wynntils.WynntilsSound;
 import com.wynntils.core.utils.ItemUtils;
 import com.wynntils.core.utils.StringUtils;
 import com.wynntils.core.utils.objects.Pair;
-import com.wynntils.modules.chat.overlays.ChatOverlay;
 import com.wynntils.modules.core.enums.InventoryResult;
 import com.wynntils.modules.core.instances.inventory.FakeInventory;
 import com.wynntils.modules.core.instances.inventory.InventoryOpenByItem;
@@ -22,15 +21,17 @@ import com.wynntils.modules.questbook.enums.QuestStatus;
 import com.wynntils.modules.questbook.events.custom.QuestBookUpdateEvent;
 import com.wynntils.modules.questbook.instances.DiscoveryInfo;
 import com.wynntils.modules.questbook.instances.QuestInfo;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.inventory.container.ClickType;
 import net.minecraft.inventory.container.PlayerContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.TextFormatting;
 
 import java.util.*;
 import java.util.regex.Pattern;
-
-import static net.minecraft.util.text.TextFormatting.*;
 
 public class QuestManager {
 
@@ -43,10 +44,10 @@ public class QuestManager {
     private static Map<String, DiscoveryInfo> currentDiscoveries = new LinkedHashMap<>();
     private static String trackedQuest = null;
 
-    private static List<String> questsLore = new ArrayList<>();
-    private static List<String> miniQuestsLore = new ArrayList<>();
-    private static List<String> discoveriesLore = new ArrayList<>();
-    private static List<String> secretDiscoveriesLore = new ArrayList<>();
+    private static List<ITextComponent> questsLore = new ArrayList<>();
+    private static List<ITextComponent> miniQuestsLore = new ArrayList<>();
+    private static List<ITextComponent> discoveriesLore = new ArrayList<>();
+    private static List<ITextComponent> secretDiscoveriesLore = new ArrayList<>();
 
     private static boolean hasInterrupted = false;
     private static boolean fullRead = true;
@@ -97,7 +98,8 @@ public class QuestManager {
             return;
         }
 
-        sendMessage(GRAY + "[Analysing quest book...]");
+        sendMessage(new StringTextComponent("[Analysing quest book...]")
+                .withStyle(TextFormatting.GRAY));
         hasInterrupted = false;
 
         List<ItemStack> gatheredQuests = new ArrayList<>();
@@ -140,14 +142,15 @@ public class QuestManager {
 
                     List<String> lore = ItemUtils.getUnformattedLore(stack);
                     // uppercase on beta
-                    if (lore.isEmpty() || (!lore.contains("Right click to track") && !lore.contains("RIGHT-CLICK TO TRACK") && !lore.contains("Right click to stop tracking"))) continue; // not a valid quest
+                    if (lore.isEmpty() || (!lore.contains("RIGHT-CLICK TO TRACK") && !lore.contains("Right click to stop tracking")))
+                        continue; // not a valid quest
 
                     if (fullRead) {
                         gatheredQuests.add(stack);
                         continue;
                     }
 
-                    String displayName = StringUtils.normalizeBadString(getTextWithoutFormattingCodes(stack.getDisplayName()));
+                    String displayName = StringUtils.normalizeBadString(stack.getHoverName().getString());
                     if (currentQuests.containsKey(displayName) && currentQuests.get(displayName).equals(stack)) {
                         continue;
                     }
@@ -172,7 +175,7 @@ public class QuestManager {
                         continue;
                     }
 
-                    String displayName = getTextWithoutFormattingCodes(stack.getDisplayName());
+                    String displayName = stack.getHoverName().getString();
                     if (currentMiniQuests.containsKey(displayName) && currentMiniQuests.get(displayName).equals(stack)) {
                         continue;
                     }
@@ -189,15 +192,16 @@ public class QuestManager {
                 for (ItemStack stack : i.getInventory()) {
                     if (!stack.hasCustomHoverName()) continue; // also checks for nbt
 
-                    List<String> lore = ItemUtils.getLore(stack);
-                    if (lore.isEmpty() || !getTextWithoutFormattingCodes(lore.get(0)).contains("✔ Combat Lv")) continue;
+                    List<ITextComponent> lore = ItemUtils.getLore(stack);
+                    if (lore.isEmpty() || !lore.get(0).getString().contains("✔ Combat Lv"))
+                        continue;
 
                     if (fullRead) {
                         gatheredDiscoveries.add(stack);
                         continue;
                     }
 
-                    String displayName = getTextWithoutFormattingCodes(stack.getDisplayName());
+                    String displayName = stack.getHoverName().getString();
                     if (currentDiscoveries.containsKey(displayName)) {
                         continue;
                     }
@@ -266,10 +270,12 @@ public class QuestManager {
             if (!gatheredQuests.isEmpty()) parseQuests(gatheredQuests);
             if (!gatheredMiniQuests.isEmpty()) parseMiniQuests(gatheredMiniQuests);
             if (!gatheredDiscoveries.isEmpty()) parseDiscoveries(gatheredDiscoveries);
+            System.out.println(getCurrentQuests());
 
             FrameworkManager.getEventBus().post(new QuestBookUpdateEvent.Full());
-            sendMessage(GRAY + "[Quest book analyzed]");
-            WynntilsSound.QUESTBOOK_UPDATE.play(0.5f, 1f);
+            sendMessage(new StringTextComponent("[Quest book analyzed]")
+                    .withStyle(TextFormatting.GRAY));
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forAmbientAddition(WynntilsSounds.QUESTBOOK_UPDATE.get()));
         });
 
         synchronized (QuestManager.class) {
@@ -368,19 +374,19 @@ public class QuestManager {
         return currentDiscoveries.getOrDefault(name, null);
     }
 
-    public static List<String> getQuestsLore() {
+    public static List<ITextComponent> getQuestsLore() {
         return questsLore;
     }
 
-    public static List<String> getMiniQuestsLore() {
+    public static List<ITextComponent> getMiniQuestsLore() {
         return miniQuestsLore;
     }
 
-    public static List<String> getDiscoveriesLore() {
+    public static List<ITextComponent> getDiscoveriesLore() {
         return discoveriesLore;
     }
 
-    public static List<String> getSecretDiscoveriesLore() {
+    public static List<ITextComponent> getSecretDiscoveriesLore() {
         return secretDiscoveriesLore;
     }
 
@@ -459,14 +465,13 @@ public class QuestManager {
 
     private static void interrupt() {
         hasInterrupted = true;
-        sendMessage(RED + "[Quest book analysis failed, manually open your book to try again]");
+        sendMessage(new StringTextComponent("[Quest book analysis failed, manually open your book to try again]")
+                .withStyle(TextFormatting.RED));
     }
 
-    private static void sendMessage(String msg) {
+    private static void sendMessage(ITextComponent msg) {
         // Can be called from nio thread by FakeInventory
-        McIf.mc().submit(() ->
-            ChatOverlay.getChat().printChatMessageWithOptionalDeletion(new StringTextComponent(msg), MESSAGE_ID)
-        );
+        McIf.mc().submit(() -> Minecraft.getInstance().gui.getChat().addMessage(msg));
     }
 
 }

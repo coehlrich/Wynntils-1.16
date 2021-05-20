@@ -13,7 +13,6 @@ import com.wynntils.modules.visual.entities.conditions.FlameSpawnCondition;
 import com.wynntils.modules.visual.entities.conditions.SnowFlakesSpawnCondition;
 import com.wynntils.modules.visual.events.ClientEvents;
 import com.wynntils.modules.visual.instances.SplashProfile;
-import com.wynntils.modules.visual.overlays.OverlayEvents;
 import com.wynntils.webapi.WebManager;
 
 @ModuleInfo(name = "visual", displayName = "Visual")
@@ -42,7 +41,8 @@ public class VisualModule extends Module {
         registerSpawnCondition(new FlameSpawnCondition());
 
         registerEvents(new ClientEvents());
-        registerEvents(new OverlayEvents());
+        // TODO: uncomment
+//        registerEvents(new OverlayEvents());
 
         if (WebManager.getApiUrls() != null && WebManager.getApiUrls().get("ClassSelectionSplash") != null) {
             charSelectionSplash = new SplashProfile(WebManager.getApiUrls().get("ClassSelectionSplash"));

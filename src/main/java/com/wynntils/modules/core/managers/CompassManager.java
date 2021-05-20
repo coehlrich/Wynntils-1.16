@@ -6,22 +6,24 @@ package com.wynntils.modules.core.managers;
 
 
 import com.wynntils.McIf;
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.core.events.ServerEvents;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.vector.Vector3d;
 
 public class CompassManager {
 
-    private static Location compassLocation = null;
+    private static Vector3d compassLocation = null;
 
-    public static Location getCompassLocation() {
-        if (compassLocation != null) compassLocation.setY(McIf.player().getY());
+    public static Vector3d getCompassLocation() {
+        if (compassLocation != null)
+            compassLocation = new Vector3d(0, McIf.player().getY(), 0);
         return compassLocation;
     }
 
-    public static void setCompassLocation(Location compassLocation) {
+    public static void setCompassLocation(Vector3d compassLocation) {
         CompassManager.compassLocation = compassLocation;
 
-        McIf.world().getLevelData().setSpawn(compassLocation.toBlockPos(), 0);
+        McIf.world().getLevelData().setSpawn(new BlockPos(compassLocation), 0);
     }
 
     public static void reset() {

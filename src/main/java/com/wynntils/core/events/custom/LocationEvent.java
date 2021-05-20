@@ -4,10 +4,10 @@
 
 package com.wynntils.core.events.custom;
 
-import com.wynntils.core.utils.objects.Location;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraftforge.eventbus.api.Event;
 
 public class LocationEvent extends Event {
@@ -16,21 +16,21 @@ public class LocationEvent extends Event {
      * Emitted when a static label is encountered in the map.
      */
     public static class LabelFoundEvent extends LocationEvent {
-        private final String label;
-        private final Location location;
+        private final ITextComponent label;
+        private final Vector3d location;
         private final Entity entity;
 
-        public LabelFoundEvent(String label, Location location, Entity entity) {
+        public LabelFoundEvent(ITextComponent label, Vector3d location, Entity entity) {
             this.label = label;
             this.location = location;
             this.entity = entity;
         }
 
-        public String getLabel() {
+        public ITextComponent getLabel() {
             return label;
         }
 
-        public Location getLocation() {
+        public Vector3d getLocation() {
             return location;
         }
 
@@ -46,21 +46,21 @@ public class LocationEvent extends Event {
      * Emitted when a labeled LivingEntity is encountered in the map.
      */
     public static class EntityLabelFoundEvent extends LocationEvent {
-        private final String label;
-        private final Location location;
+        private final ITextComponent label;
+        private final Vector3d location;
         private final LivingEntity entity;
 
-        public EntityLabelFoundEvent(String label, Location location, LivingEntity entity) {
+        public EntityLabelFoundEvent(ITextComponent label, Vector3d location, LivingEntity entity) {
             this.label = label;
             this.location = location;
             this.entity = entity;
         }
 
-        public String getLabel() {
+        public ITextComponent getLabel() {
             return label;
         }
 
-        public Location getLocation() {
+        public Vector3d getLocation() {
             return location;
         }
 

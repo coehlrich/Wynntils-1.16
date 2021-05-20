@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.enums.SkillPoint;
 import com.wynntils.core.framework.enums.SpellType;
@@ -303,7 +304,7 @@ public class ConsumableTimerOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         event.setCanceled(false);
 
         if (activeConsumables.isEmpty()) return;

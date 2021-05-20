@@ -5,9 +5,10 @@
 package com.wynntils.modules.questbook.overlays.ui;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.enums.SortDirection;
-import com.wynntils.core.framework.enums.wynntils.WynntilsSound;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
@@ -20,21 +21,20 @@ import com.wynntils.core.utils.helpers.ItemFilter.ByStat;
 import com.wynntils.core.utils.helpers.ItemSearchState;
 import com.wynntils.modules.questbook.QuestBookModule;
 import com.wynntils.modules.questbook.configs.QuestBookConfig;
-import com.wynntils.modules.questbook.enums.QuestBookPages;
 import com.wynntils.modules.questbook.instances.IconContainer;
 import com.wynntils.modules.questbook.instances.QuestBookPage;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.profiles.item.ItemProfile;
 import com.wynntils.webapi.profiles.item.enums.ItemType;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.MainWindow;
-import com.wynntils.transition.GlStateManager;
 import net.minecraft.block.Blocks;
-import net.minecraft.item.Items;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.client.MainWindow;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -263,12 +263,25 @@ public class ItemPage extends QuestBookPage {
         itemSearch = WebManager.getDirectItems().stream().filter(searchState).sorted(searchState).collect(Collectors.toList());
         pages = itemSearch.size() <= 42 ? 1 : (int) Math.ceil(itemSearch.size() / 42d);
         currentPage = Math.min(currentPage, pages);
-        refreshAccepts();
+        updatePage();
     }
 
     @Override
-    public List<String> getHoveredDescription() {
-        return Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Item Guide", TextFormatting.GRAY + "See all items", TextFormatting.GRAY + "currently available", TextFormatting.GRAY + "in the game.", "", TextFormatting.GREEN + "Left click to select");
+    public List<ITextComponent> getHoveredDescription() {
+        return Arrays.asList(
+                new StringTextComponent("[>] ")
+                        .withStyle(TextFormatting.GOLD)
+                        .append(new StringTextComponent("Item Guide")
+                                .withStyle(TextFormatting.BOLD)),
+                new StringTextComponent("See all items")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("currently available")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("in the game.")
+                        .withStyle(TextFormatting.GRAY),
+                StringTextComponent.EMPTY,
+                new StringTextComponent("Left click to select")
+                        .withStyle(TextFormatting.GREEN));
     }
 
     private interface SearchHandler {

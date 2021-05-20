@@ -4,11 +4,12 @@
 
 package com.wynntils.modules.visual.instances;
 
+import com.wynntils.McIf;
 import com.wynntils.core.framework.enums.CharacterGameMode;
 import com.wynntils.core.utils.ItemUtils;
 import com.wynntils.core.utils.StringUtils;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.ITextComponent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +36,8 @@ public class CharacterProfile {
         this.stack = stack;
         this.slot = slot;
 
-        String name = stack.getDisplayName();
-        className = McIf.getTextWithoutFormattingCodes(name).replace("[>] Select ", "");
+        ITextComponent name = stack.getDisplayName();
+        className = name.getString().replace("[>] Select ", "");
 
         for (String line : ItemUtils.getLore(stack)) {
             line = McIf.getTextWithoutFormattingCodes(line);

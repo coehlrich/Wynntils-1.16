@@ -5,10 +5,9 @@
 package com.wynntils.core.utils.objects;
 
 import com.wynntils.core.utils.objects.Functions.Cubic;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 
-import javax.vecmath.Point3d;
-import javax.vecmath.Tuple3d;
-import javax.vecmath.Vector3d;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -118,9 +117,9 @@ public final class CubicSplines {
         }
     }
 
-    public static final class Spline3D implements DoubleFunction<Location> {
+    public static final class Spline3D implements DoubleFunction<Vector3d> {
 
-        private List<Location> points;
+        private List<Vector3d> points;
         private transient Cubic[] xCubics;
         private transient Cubic[] yCubics;
         private transient Cubic[] zCubics;
@@ -131,65 +130,65 @@ public final class CubicSplines {
             this(Collections.emptyList());
         }
 
-        public Spline3D(Collection<? extends Point3d> points) {
+        public Spline3D(Collection<? extends Vector3d> points) {
             setPoints(points);
         }
 
-        public void setPoints(Collection<? extends Point3d> points) {
+        public void setPoints(Collection<? extends Vector3d> points) {
             dirty = true;
             if (points == null) {
                 this.points = new ArrayList<>();
                 return;
             }
             this.points = new ArrayList<>(points.size());
-            for (Point3d point : points) {
-                this.points.add(new Location(point));
+            for (Vector3d point : points) {
+                this.points.add(point);
             }
         }
 
-        public void addPoint(Point3d point) {
+        public void addPoint(Vector3d point) {
             dirty = true;
-            points.add(new Location(point));
+            points.add(point);
         }
 
-        public void addPoints(Collection<? extends Point3d> newPoints) {
+        public void addPoints(Collection<? extends Vector3d> newPoints) {
             if (newPoints == null || newPoints.isEmpty()) return;
             dirty = true;
-            ((ArrayList<Location>) points).ensureCapacity(points.size() + newPoints.size());
-            for (Point3d point : newPoints) {
-                points.add(new Location(point));
+            ((ArrayList<Vector3d>) points).ensureCapacity(points.size() + newPoints.size());
+            for (Vector3d point : newPoints) {
+                points.add(point);
             }
         }
 
-        public void addPoints(int index, Collection<? extends Point3d> newPoints) {
+        public void addPoints(int index, Collection<? extends Vector3d> newPoints) {
             if (newPoints == null || newPoints.isEmpty()) return;
             dirty = true;
-            List<Location> copy = new ArrayList<>(newPoints.size());
-            for (Point3d point : newPoints) {
-                copy.add(new Location(point));
+            List<Vector3d> copy = new ArrayList<>(newPoints.size());
+            for (Vector3d point : newPoints) {
+                copy.add(point);
             }
             points.addAll(index, copy);
         }
 
-        public void removePoints(Collection<? extends Point3d> removedPoints) {
+        public void removePoints(Collection<? extends Vector3d> removedPoints) {
             dirty = true;
             points.removeAll(removedPoints);
         }
 
-        public List<Location> getPoints() {
+        public List<Vector3d> getPoints() {
             return Collections.unmodifiableList(points);
         }
 
         private void recalculateAllCubics() {
             if (points.size() > 0) {
-                List<List<Location>> splitPoints = new ArrayList<>();
-                List<Location> currentPoints = new ArrayList<>();
+                List<List<Vector3d>> splitPoints = new ArrayList<>();
+                List<Vector3d> currentPoints = new ArrayList<>();
                 splitPoints.add(currentPoints);
                 currentPoints.add(points.get(0));
                 for (int i = 0; i < points.size() - 1; i++) {
-                    Location location = points.get(i);
-                    Location nextLocation = points.get(i + 1);
-                    if (location.distance(nextLocation) > 32D) {
+                    Vector3d location = points.get(i);
+                    Vector3d nextLocation = points.get(i + 1);
+                    if (location.distanceTo(nextLocation) > 32D) {
                         currentPoints = new ArrayList<>();
                         splitPoints.add(currentPoints);
                     }
@@ -199,23 +198,23 @@ public final class CubicSplines {
                 List<Cubic> xCubicsList = new ArrayList<>();
                 List<Cubic> yCubicsList = new ArrayList<>();
                 List<Cubic> zCubicsList = new ArrayList<>();
-                for (List<Location> points : splitPoints) {
-                    Cubic[] xCubics = calculate1DSpline(points, Tuple3d::getX);
+                for (List<Vector3d> points : splitPoints) {
+                    Cubic[] xCubics = calculate1DSpline(points, Vector3d::x);
                     Collections.addAll(xCubicsList, xCubics);
                     if (points.size() > 1) {
-                        xCubicsList.add(new Cubic(points.get(points.size() - 1).getX(), 0, 0, 0));
+                        xCubicsList.add(new Cubic(points.get(points.size() - 1).x, 0, 0, 0));
                     }
 
-                    Cubic[] yCubics = calculate1DSpline(points, Tuple3d::getY);
+                    Cubic[] yCubics = calculate1DSpline(points, Vector3d::y);
                     Collections.addAll(yCubicsList, yCubics);
                     if (points.size() > 1) {
-                        yCubicsList.add(new Cubic(points.get(points.size() - 1).getY(), 0, 0, 0));
+                        yCubicsList.add(new Cubic(points.get(points.size() - 1).y, 0, 0, 0));
                     }
 
-                    Cubic[] zCubics = calculate1DSpline(points, Tuple3d::getZ);
+                    Cubic[] zCubics = calculate1DSpline(points, Vector3d::z);
                     Collections.addAll(zCubicsList, zCubics);
                     if (points.size() > 1) {
-                        zCubicsList.add(new Cubic(points.get(points.size() - 1).getZ(), 0, 0, 0));
+                        zCubicsList.add(new Cubic(points.get(points.size() - 1).z, 0, 0, 0));
                     }
                 }
 
@@ -243,7 +242,7 @@ public final class CubicSplines {
          * @return the distance between points[index] and points[index + 1]
          */
         public double distanceAt(int index) {
-            return points.get(index).distance(points.get(index + 1));
+            return points.get(index).distanceTo(points.get(index + 1));
         }
 
         /**
@@ -251,9 +250,9 @@ public final class CubicSplines {
          * @return The location corresponding to that point on the spline
          */
         @Override
-        public Location apply(double t) {
+        public Vector3d apply(double t) {
             t *= points.size();
-            return apply((int) Math.floor(t), t % 1);
+            return apply(MathHelper.fastFloor(t), t % 1);
         }
 
         /**
@@ -262,14 +261,14 @@ public final class CubicSplines {
          * @param index Between 0 and points.size() - 1
          * @param t Between 0 and 1
          */
-        public Location apply(int index, double t) {
+        public Vector3d apply(int index, double t) {
             if (dirty) recalculateAllCubics();
 
             return applyUnchecked(index, t);
         }
 
-        private Location applyUnchecked(int index, double t) {
-            return new Location(xCubics[index].applyAsDouble(t), yCubics[index].applyAsDouble(t), zCubics[index].applyAsDouble(t));
+        private Vector3d applyUnchecked(int index, double t) {
+            return new Vector3d(xCubics[index].applyAsDouble(t), yCubics[index].applyAsDouble(t), zCubics[index].applyAsDouble(t));
         }
 
         public Vector3d derivative(double t) {
@@ -289,7 +288,7 @@ public final class CubicSplines {
 
         private static final double DEFAULT_SAMPLE_RATE = 10;  // How many samples per block
 
-        public Pair<List<Location>, List<Vector3d>> sample() {
+        public Pair<List<Vector3d>, List<Vector3d>> sample() {
             return sample(DEFAULT_SAMPLE_RATE);
         }
 
@@ -300,21 +299,21 @@ public final class CubicSplines {
          * @param sampleRate The resolution of the sample (per block/metre)
          * @return A list pairs of values of this function and its derivative sampled at monotonically increasing values
          */
-        public Pair<List<Location>, List<Vector3d>> sample(double sampleRate) {
+        public Pair<List<Vector3d>, List<Vector3d>> sample(double sampleRate) {
             if (points.isEmpty()) {
                 return new Pair<>(Collections.emptyList(), Collections.emptyList());
             } else if (points.size() == 1) {
-                return new Pair<>(Collections.singletonList(points.get(0)), Collections.singletonList(new Vector3d()));
+                return new Pair<>(Collections.singletonList(points.get(0)), Collections.singletonList(new Vector3d(0, 0, 0)));
             }
 
             if (dirty) recalculateAllCubics();
 
-            List<Location> values = new ArrayList<>();
+            List<Vector3d> values = new ArrayList<>();
             List<Vector3d> derivatives = new ArrayList<>();
             double integral = 0;
             for (int i = 0; i < points.size() - 1; ++i) {
                 if (distanceAt(i) > 32D) {
-                    values.add(new Location(points.get(i)));
+                    values.add(points.get(i));
                     derivatives.add(derivativeUnchecked(i, 1));
                     integral = 0;
                     continue;
@@ -337,7 +336,7 @@ public final class CubicSplines {
                     lastT = t;
                 }
             }
-            values.add(new Location(points.get(points.size() - 1)));
+            values.add(points.get(points.size() - 1));
             derivatives.add(derivativeUnchecked(xCubics.length - 1, 1));
 
             return new Pair<>(values, derivatives);

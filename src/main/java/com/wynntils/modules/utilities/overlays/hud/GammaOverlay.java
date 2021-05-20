@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
@@ -18,7 +19,7 @@ public class GammaOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Post e) {
+    public void render(RenderGameOverlayEvent.Post e, MatrixStack matrix) {
         if (e.getType() != RenderGameOverlayEvent.ElementType.EXPERIENCE && e.getType() != RenderGameOverlayEvent.ElementType.JUMPBAR) {
             return;
         }

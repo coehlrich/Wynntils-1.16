@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -26,7 +27,7 @@ public class DrowningVignetteOverlay extends Overlay {
     private static float animation = 300.0f;
 
     @Override
-    public void render(RenderGameOverlayEvent.Post e) {
+    public void render(RenderGameOverlayEvent.Post e, MatrixStack matrix) {
         if (!Reference.onWorld || !OverlayConfig.Bubbles.INSTANCE.drowningVignette || e.getType() != RenderGameOverlayEvent.ElementType.ALL) {
             return;
         }

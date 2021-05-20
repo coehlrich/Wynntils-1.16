@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.events.custom.PacketEvent;
@@ -52,7 +53,7 @@ public class WarTimerOverlay extends Overlay {
     private static final Pattern minutesPattern = Pattern.compile("(\\d+) minute");
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!((event.getType() == RenderGameOverlayEvent.ElementType.EXPERIENCE) || (event.getType() == RenderGameOverlayEvent.ElementType.JUMPBAR))) return;
         long currentTime = System.currentTimeMillis();
         long timeLeft = time - currentTime;

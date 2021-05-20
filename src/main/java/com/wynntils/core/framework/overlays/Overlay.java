@@ -4,24 +4,26 @@
 
 package com.wynntils.core.framework.overlays;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.FrameworkManager;
 import com.wynntils.core.framework.instances.Module;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.containers.ModuleContainer;
 import com.wynntils.core.framework.instances.containers.PlayerData;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.settings.annotations.Setting;
 import com.wynntils.core.framework.settings.instances.SettingsHolder;
 import com.wynntils.core.utils.objects.Position;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.AbstractGui;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.event.TickEvent;
 
-import java.awt.*;
+import java.awt.Point;
 
 import static com.wynntils.core.framework.rendering.SmartFontRenderer.TextAlignment.*;
 
-public abstract class Overlay extends ScreenRenderer implements SettingsHolder {
+public abstract class Overlay extends AbstractGui implements SettingsHolder {
 
     public transient ModuleContainer module = null;
     public transient String displayName;
@@ -45,11 +47,11 @@ public abstract class Overlay extends ScreenRenderer implements SettingsHolder {
         this.position.offsetX = offsetX;
         this.position.offsetY = offsetY;
         this.growth = growth;
-        this.position.refresh(screen);
+        this.position.refresh(Minecraft.getInstance().getWindow());
     }
 
-    public void render(RenderGameOverlayEvent.Pre event) {}
-    public void render(RenderGameOverlayEvent.Post event) {}
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {}
+    public void render(RenderGameOverlayEvent.Post event, MatrixStack matrix) {}
     public void tick(TickEvent.ClientTickEvent event, long ticks) {}
 
     public <T extends PlayerData> T get(Class<T> clazz) {

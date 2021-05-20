@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
@@ -28,7 +29,7 @@ public class ScoreboardOverlay extends Overlay {
 
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!Reference.onWorld || !OverlayConfig.Scoreboard.INSTANCE.enableScoreboard ||
                 event.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
 

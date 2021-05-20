@@ -4,6 +4,7 @@
 
 package com.wynntils.core.framework.entities;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.entities.instances.FakeEntity;
 import com.wynntils.core.utils.Utils;
@@ -14,8 +15,6 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-import static com.wynntils.transition.GlStateManager.*;
 
 public class EntityManager {
 
@@ -87,7 +86,7 @@ public class EntityManager {
      * @param partialTicks the world partial ticks
      * @param context the rendering context
      */
-    public static void renderEntities(float partialTicks, WorldRenderer context) {
+    public static void renderEntities(float partialTicks, WorldRenderer context, MatrixStack matrix) {
         if (entityList.isEmpty() && toSpawn.isEmpty()) return;
 
         McIf.mc().getProfiler().push("fakeEntities");
@@ -109,21 +108,16 @@ public class EntityManager {
                 FakeEntity next = it.next();
 
                 McIf.mc().getProfiler().push(next.getName());
-                {
-                    pushMatrix();
-                    {
-                        next.preRender(partialTicks, context, renderManager);
-                        // translates to the correctly entity position
-                        // subtracting the viewer position offset
-                        translate(
-                                next.currentLocation.x - renderManager.camera.getPosition().x,
-                                next.currentLocation.y - renderManager.camera.getPosition().y,
-                                next.currentLocation.z - renderManager.camera.getPosition().z
-                        );
-                        next.render(partialTicks, context, renderManager);
-                    }
-                    popMatrix();
-                }
+                matrix.pushPose();
+                next.preRender(partialTicks, context, renderManager);
+                // translates to the correctly entity position
+                // subtracting the viewer position offset
+                matrix.translate(
+                        next.currentLocation.x - renderManager.camera.getPosition().x,
+                        next.currentLocation.y - renderManager.camera.getPosition().y,
+                        next.currentLocation.z - renderManager.camera.getPosition().z);
+                next.render(partialTicks, context, renderManager);
+                matrix.popPose();
                 McIf.mc().getProfiler().pop();
             }
         }

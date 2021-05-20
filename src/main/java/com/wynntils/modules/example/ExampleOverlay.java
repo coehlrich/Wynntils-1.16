@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.example;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.settings.annotations.Setting;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -36,7 +37,7 @@ public class ExampleOverlay extends Overlay {
 
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         /*
         In here, You can do all rendering for the 'PRE' phase or cancel any vanilla elements.
         Do not forget that you have to check for only 1 element type to render on or it will spam this around
@@ -50,7 +51,7 @@ public class ExampleOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Post event) {
+    public void render(RenderGameOverlayEvent.Post event, MatrixStack matrix) {
         /*
         In here, You can do all rendering for the 'POST' phase, Anything you render here will happen after all renders.
         Do not forget that you have to check for only 1 element type to render on or it will spam this around

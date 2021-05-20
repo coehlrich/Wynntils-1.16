@@ -4,7 +4,6 @@
 
 package com.wynntils.core.utils;
 
-import com.wynntils.McIf;
 import com.wynntils.core.utils.objects.IntRange;
 import com.wynntils.core.utils.reference.EmeraldSymbols;
 import com.wynntils.webapi.WebManager;
@@ -19,6 +18,9 @@ import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.nbt.StringNBT;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
@@ -58,14 +60,14 @@ public class ItemUtils {
      *
      * @return an {@link List} containing all item lore
      */
-    public static List<String> getLore(ItemStack item) {
+    public static List<ITextComponent> getLore(ItemStack item) {
         ListNBT loreTag = getLoreTag(item);
 
-        List<String> lore = new ArrayList<>();
+        List<ITextComponent> lore = new ArrayList<>();
         if (loreTag == null) return lore;
 
         for (int i = 0; i < loreTag.size(); ++i) {
-            lore.add(loreTag.getString(i));
+            lore.add(ITextComponent.Serializer.fromJson(loreTag.getString(i)));
         }
 
         return lore;
@@ -100,18 +102,18 @@ public class ItemUtils {
         if (loreTag == null) return lore;
 
         for (int i = 0; i < loreTag.size(); ++i) {
-            lore.add(McIf.getTextWithoutFormattingCodes(loreTag.getString(i)));
+            lore.add(ITextComponent.Serializer.fromJson(loreTag.getString(i)).getString());
         }
 
         return lore;
     }
 
-    public static String getStringLore(ItemStack is) {
-        StringBuilder toReturn = new StringBuilder();
-        for (String x : getLore(is)) {
+    public static ITextComponent getStringLore(ItemStack is) {
+        IFormattableTextComponent toReturn = new StringTextComponent("");
+        for (ITextComponent x : getLore(is)) {
             toReturn.append(x);
         }
-        return toReturn.toString();
+        return toReturn;
     }
 
     /**

@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.settings.annotations.Setting;
@@ -29,7 +30,7 @@ public class LobbyCleanerOverlay extends Overlay {
     public boolean noAir = true;
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (noHealth && event.getType() == RenderGameOverlayEvent.ElementType.HEALTH) event.setCanceled(true);
         if (noFood && event.getType() == RenderGameOverlayEvent.ElementType.FOOD) event.setCanceled(true);
         if (noExp && event.getType() == RenderGameOverlayEvent.ElementType.EXPERIENCE) event.setCanceled(true);

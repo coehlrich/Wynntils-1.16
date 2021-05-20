@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.questbook.instances;
 
+import com.wynntils.McIf;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.data.CharacterData;
 import com.wynntils.core.utils.ItemUtils;
@@ -41,9 +42,9 @@ public class DiscoveryInfo {
         lore = ItemUtils.getLore(originalStack);
 
         // simple parameters
-        name = originalStack.getDisplayName();
+        name = originalStack.getDisplayName().getString();
         name = StringUtils.normalizeBadString(name.substring(0, name.length() - 1));
-        minLevel = Integer.parseInt(getTextWithoutFormattingCodes(lore.get(0)).replace("✔ Combat Lv. Min: ", ""));
+        minLevel = Integer.parseInt(TextFormatting.stripFormatting(lore.get(0)).replace("✔ Combat Lv. Min: ", ""));
 
         // type
         type = null;

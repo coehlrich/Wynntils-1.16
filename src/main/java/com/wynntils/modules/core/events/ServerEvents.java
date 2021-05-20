@@ -18,7 +18,6 @@ import com.wynntils.core.framework.instances.data.LocationData;
 import com.wynntils.core.framework.instances.data.SocialData;
 import com.wynntils.core.framework.interfaces.Listener;
 import com.wynntils.core.utils.helpers.Delay;
-import com.wynntils.core.utils.reflections.ReflectionFields;
 import com.wynntils.modules.core.CoreModule;
 import com.wynntils.modules.core.config.CoreDBConfig;
 import com.wynntils.modules.core.enums.UpdateStream;
@@ -30,7 +29,6 @@ import com.wynntils.modules.core.managers.PartyManager;
 import com.wynntils.modules.core.managers.UserManager;
 import com.wynntils.modules.core.overlays.UpdateOverlay;
 import com.wynntils.modules.core.overlays.ui.ChangelogUI;
-import com.wynntils.modules.core.overlays.ui.PlayerInfoReplacer;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.downloader.DownloaderManager;
 import com.wynntils.webapi.profiles.TerritoryProfile;
@@ -39,13 +37,14 @@ import net.minecraft.client.gui.IngameGui;
 import net.minecraft.network.play.server.SWorldSpawnChangedPacket;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ChatType;
+import net.minecraft.util.text.IFormattableTextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.network.FMLNetworkEvent;
 
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -71,12 +70,13 @@ public class ServerEvents implements Listener {
      * @param e Represents the event
      */
     @SubscribeEvent
-    public void joinServer(FMLNetworkEvent.ClientConnectedToServerEvent e) {
-        e.getManager().channel().pipeline().addBefore("fml:packet_handler", Reference.MOD_ID + ":packet_filter", new PacketIncomingFilter());
-        e.getManager().channel().pipeline().addBefore("fml:packet_handler", Reference.MOD_ID + ":outgoingFilter", new PacketOutgoingFilter());
+    public void joinServer(ClientPlayerNetworkEvent.LoggedInEvent e) {
+        e.getNetworkManager().channel().pipeline().addBefore("packet_handler", Reference.MOD_ID + ":packet_filter", new PacketIncomingFilter());
+        e.getNetworkManager().channel().pipeline().addBefore("packet_handler", Reference.MOD_ID + ":outgoingFilter", new PacketOutgoingFilter());
 
         IngameGui ingameGui = McIf.mc().gui;
-        ReflectionFields.IngameGui_overlayPlayerList.setValue(ingameGui, new PlayerInfoReplacer(McIf.mc(), ingameGui));
+        // TODO: uncomment
+//        ReflectionFields.IngameGui_overlayPlayerList.setValue(ingameGui, new PlayerInfoReplacer(McIf.mc(), ingameGui));
 
         WebManager.tryReloadApiUrls(true);
         WebManager.checkForUpdatesOnJoin();
@@ -145,7 +145,7 @@ public class ServerEvents implements Listener {
         String messageText = McIf.getUnformattedText(e.getMessage());
         String formatted = McIf.getFormattedText(e.getMessage());
         Matcher m = FRIENDS_LIST.matcher(formatted);
-        if (m.find() && m.group(1).equals(McIf.player().getName())) {
+        if (m.find() && m.group(1).equals(McIf.player().getName().getString())) {
             String[] friends = m.group(2).split(", ");
 
             Set<String> friendsList = PlayerInfo.get(SocialData.class).getFriendList();
@@ -240,9 +240,8 @@ public class ServerEvents implements Listener {
     public void onJoinServer(WynncraftServerEvent.Login e) {
         if (WebManager.isAthenaOnline()) return;
 
-        StringTextComponent msg = new StringTextComponent("The Wynntils servers are currently down! You can still use Wynntils, but some features may not work. Our servers should be back soon.");
-        msg.getStyle().setColor(TextFormatting.RED);
-        msg.getStyle().setBold(true);
+        IFormattableTextComponent msg = new StringTextComponent("The Wynntils servers are currently down! You can still use Wynntils, but some features may not work. Our servers should be back soon.")
+                .withStyle(TextFormatting.RED, TextFormatting.BOLD);
         new Delay(() -> McIf.sendMessage(msg), 30); // delay so the player actually loads in
     }
 

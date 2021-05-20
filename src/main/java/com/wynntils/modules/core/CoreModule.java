@@ -7,11 +7,9 @@ package com.wynntils.modules.core;
 import com.wynntils.core.framework.enums.Priority;
 import com.wynntils.core.framework.instances.Module;
 import com.wynntils.core.framework.interfaces.annotations.ModuleInfo;
-import com.wynntils.modules.core.commands.*;
 import com.wynntils.modules.core.config.CoreDBConfig;
 import com.wynntils.modules.core.events.ClientEvents;
 import com.wynntils.modules.core.events.ServerEvents;
-import com.wynntils.modules.core.managers.TabManager;
 import com.wynntils.modules.core.overlays.DownloadOverlay;
 import com.wynntils.modules.core.overlays.UpdateOverlay;
 
@@ -29,15 +27,16 @@ public class CoreModule extends Module {
 
         registerSettings(CoreDBConfig.class);
 
-        registerCommand(new CommandAdmin());
-        registerCommand(new CommandCompass());
-        registerCommand(new CommandForceUpdate());
-        registerCommand(new CommandServer());
-        registerCommand(new CommandTerritory());
-        registerCommand(new CommandToken());
-        registerCommand(new CommandWynntils());
+        // TODO: commands
+//        registerCommand(new CommandAdmin());
+//        registerCommand(new CommandCompass());
+//        registerCommand(new CommandForceUpdate());
+//        registerCommand(new CommandServer());
+//        registerCommand(new CommandTerritory());
+//        registerCommand(new CommandToken());
+//        registerCommand(new CommandWynntils());
 
-        TabManager.replaceTabOrderer();
+//        TabManager.replaceTabOrderer();
 
         module = this;
     }

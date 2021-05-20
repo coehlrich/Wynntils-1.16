@@ -16,11 +16,11 @@ import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.request.PostRequest;
 import com.wynntils.webapi.request.Request;
 import com.wynntils.webapi.request.RequestHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.util.CryptManager;
 
 import javax.crypto.SecretKey;
 import javax.xml.bind.DatatypeConverter;
+
 import java.io.File;
 import java.math.BigInteger;
 import java.security.PublicKey;
@@ -83,7 +83,7 @@ public class WynntilsAccount {
         // response
 
         JsonObject authParams = new JsonObject();
-        authParams.addProperty("username", McIf.mc().getSession().getUsername());
+        authParams.addProperty("username", McIf.mc().getUser().getName());
         authParams.addProperty("key", secretKey[0]);
         authParams.addProperty("version", Reference.VERSION + "_" + Reference.BUILD_NUMBER);
 
@@ -163,15 +163,15 @@ public class WynntilsAccount {
         try {
             byte[] publicKeyBy = DatatypeConverter.parseHexBinary(key);
 
-            SecretKey secretkey = CryptManager.createNewSharedKey();
+            SecretKey secretkey = CryptManager.generateSecretKey();
 
-            PublicKey publicKey = CryptManager.decodePublicKey(publicKeyBy);
+            PublicKey publicKey = CryptManager.byteToPublicKey(publicKeyBy);
 
-            String s1 = (new BigInteger(CryptManager.getServerIdHash("", publicKey, secretkey))).toString(16);
+            String s1 = (new BigInteger(CryptManager.digestData("", publicKey, secretkey))).toString(16);
 
-            McIf.mc().getSessionService().joinServer(McIf.mc().getSession().getProfile(), McIf.mc().getSession().getToken(), s1.toLowerCase());
+            McIf.mc().getMinecraftSessionService().joinServer(McIf.mc().getUser().getGameProfile(), McIf.mc().getUser().getAccessToken(), s1.toLowerCase());
 
-            byte[] secretKeyEncrypted = CryptManager.encryptData(publicKey, secretkey.getEncoded());
+            byte[] secretKeyEncrypted = CryptManager.encryptUsingKey(publicKey, secretkey.getEncoded());
 
             return DatatypeConverter.printHexBinary(secretKeyEncrypted);
         } catch (Exception ex) {

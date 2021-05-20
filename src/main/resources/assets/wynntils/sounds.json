@@ -1,0 +1,35 @@
+{
+  "horse_whistle": {
+      "category": "entity",
+      "sounds": [
+          "wynntils:horse_whistle_1",
+          "wynntils:horse_whistle_2"
+      ]
+  },
+  "war_horn": {
+      "category": "ambient",
+      "sounds": [
+          "wynntils:war_horn"
+      ]
+  },
+  "questbook_update": {
+      "category": "ambient",
+      "sounds": [
+          "wynntils:questbook_update_1"
+      ]
+  },
+  "questbook_page": {
+      "category": "gui",
+      "sounds": [
+          "wynntils:questbook_page_1",
+          "wynntils:questbook_page_2",
+          "wynntils:questbook_page_3"
+      ]
+  },
+  "questbook_opening": {
+      "category": "gui",
+      "sounds": [
+          "wynntils:questbook_opening"
+      ]
+  }
+}

@@ -1,5 +1,6 @@
 package com.wynntils.modules.questbook.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
@@ -7,7 +8,6 @@ import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.core.framework.rendering.textures.Textures;
 import com.wynntils.core.utils.Utils;
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.chat.overlays.ChatOverlay;
 import com.wynntils.modules.map.MapModule;
 import com.wynntils.modules.map.configs.MapConfig;
@@ -20,13 +20,13 @@ import com.wynntils.modules.questbook.configs.QuestBookConfig;
 import com.wynntils.modules.questbook.instances.IconContainer;
 import com.wynntils.modules.questbook.instances.QuestBookPage;
 import com.wynntils.webapi.WebManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.MainWindow;
+import net.minecraft.client.audio.SimpleSound;
 import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import org.lwjgl.opengl.GL11;
@@ -50,8 +50,21 @@ public class LootRunPage extends QuestBookPage {
     }
 
     @Override
-    public List<String> getHoveredDescription() {
-        return Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Lootruns", TextFormatting.GRAY + "See all lootruns", TextFormatting.GRAY + "you have", TextFormatting.GRAY + "saved in the game.", "", TextFormatting.GREEN + "Left click to select");
+    public List<ITextComponent> getHoveredDescription() {
+        return Arrays.asList(
+                new StringTextComponent("[>] ")
+                        .withStyle(TextFormatting.GOLD)
+                        .append(new StringTextComponent("Lootruns")
+                                .withStyle(TextFormatting.BOLD)),
+                new StringTextComponent("See all lootruns")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("you have")
+                        .withStyle(TextFormatting.GRAY),
+                new StringTextComponent("saved in the game.")
+                        .withStyle(TextFormatting.GRAY),
+                StringTextComponent.EMPTY,
+                new StringTextComponent("Left click to select")
+                        .withStyle(TextFormatting.GREEN));
     }
 
     @Override
@@ -306,7 +319,7 @@ public class LootRunPage extends QuestBookPage {
 
         pages = names.size() <= 13 ? 1 : (int) Math.ceil(names.size() / 13d);
         currentPage = Math.min(currentPage, pages);
-        refreshAccepts();
+        updatePage();
     }
 
     private void updateSelected() {

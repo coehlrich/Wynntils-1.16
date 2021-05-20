@@ -6,7 +6,7 @@ package com.wynntils.modules.map.overlays.ui;
 
 import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
-import com.wynntils.core.framework.ui.elements.GuiButtonImageBetter;
+import com.wynntils.core.framework.ui.elements.GuiButtonImageScale;
 import com.wynntils.core.utils.Utils;
 import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.core.config.CoreDBConfig;
@@ -110,7 +110,7 @@ public class WaypointOverviewUI extends Screen {
             wpIcon.renderAt(renderer, this.width / 2f - 151, centreZ, multiplier, 1);
 
             if (i == hovered) {
-                GuiButtonImageBetter.setColour(true, true);
+                GuiButtonImageScale.setColour(true, true);
             }
             if (wp.getGroup() == null) {
                 String text = "NONE";
@@ -121,7 +121,7 @@ public class WaypointOverviewUI extends Screen {
                 groupIcon.renderAt(renderer, this.width / 2f - 191, centreZ, groupIconMultiplier, 1);
             }
             if (i == hovered) {
-                GuiButtonImageBetter.setColour(false, true);
+                GuiButtonImageScale.setColour(false, true);
             }
 
             font.drawString(wp.getName(), this.width/2 - 130, 60 + 25 * i, colour);
@@ -367,7 +367,7 @@ public class WaypointOverviewUI extends Screen {
                 MapWaypointIcon icon = MapWaypointIcon.getFree(WaypointProfile.WaypointType.values()[group]);
                 int texPosX = icon.getTexPosX();
                 int texPosZ = icon.getTexPosZ();
-                GuiButtonImage btn = new GuiButtonImageBetter(-(group + 1), buttonX, buttonY, icon.getTexSizeX() - texPosX, icon.getTexSizeZ() - texPosZ, texPosX, texPosZ, 0, icon.getTexture().resourceLocation);
+                GuiButtonImage btn = new GuiButtonImageScale(-(group + 1), buttonX, buttonY, icon.getTexSizeX() - texPosX, icon.getTexSizeZ() - texPosZ, texPosX, texPosZ, 0, icon.getTexture().resourceLocation);
                 groupBtns.add(btn);
                 if (this.group == group) {
                     btn.enabled = false;

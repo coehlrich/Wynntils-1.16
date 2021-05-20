@@ -44,7 +44,7 @@ public class LayerCape implements LayerRenderer<AbstractClientPlayer> {
         else bipedCape.rotationPointY = 0.0F;
 
         ReflectionFields.ModelRenderer_compiled.setValue(bipedCape, false);
-        bipedCape.render(scale);
+        bipedCape.render(scale, null);
     }
 
     public void doRenderLayer(AbstractClientPlayer player, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch, float scale) {

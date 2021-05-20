@@ -15,29 +15,26 @@ import com.wynntils.modules.chat.configs.ChatConfig;
 import com.wynntils.modules.chat.managers.ChatManager;
 import com.wynntils.modules.chat.managers.HeldItemChatManager;
 import com.wynntils.modules.chat.overlays.ChatOverlay;
-import com.wynntils.modules.chat.overlays.gui.ChatGUI;
 import com.wynntils.webapi.services.TranslationManager;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.GuiChat;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.ClientChatEvent;
 import net.minecraftforge.client.event.ClientChatReceivedEvent;
 import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent;
 
 public class ClientEvents implements Listener {
 
     @SubscribeEvent
     public void onGuiOpen(GuiOpenEvent e) {
-        if (e.getGui() instanceof GuiChat) {
-            if (e.getGui() instanceof ChatGUI) return;
-            String defaultText = ReflectionFields.GuiChat_defaultInputFieldText.getValue(e.getGui());
-
-            e.setGui(new ChatGUI(defaultText));
-        }
+//        if (e.getGui() instanceof GuiChat) {
+//            if (e.getGui() instanceof ChatGUI) return;
+//            String defaultText = ReflectionFields.GuiChat_defaultInputFieldText.getValue(e.getGui());
+//
+//            e.setGui(new ChatGUI(defaultText));
+//        }
     }
 
     @SubscribeEvent(priority = EventPriority.LOWEST)

@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
@@ -27,7 +28,7 @@ public abstract class InfoOverlay extends Overlay {
     public abstract TextAlignment getAlignment();
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre e) {
+    public void render(RenderGameOverlayEvent.Pre e, MatrixStack matrix) {
         if (!Reference.onWorld || e.getType() != RenderGameOverlayEvent.ElementType.ALL) return;
 
         String format = getFormat();

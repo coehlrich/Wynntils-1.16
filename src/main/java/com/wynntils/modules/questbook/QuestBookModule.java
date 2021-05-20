@@ -7,7 +7,6 @@ package com.wynntils.modules.questbook;
 import com.wynntils.core.framework.enums.Priority;
 import com.wynntils.core.framework.instances.Module;
 import com.wynntils.core.framework.interfaces.annotations.ModuleInfo;
-import com.wynntils.modules.questbook.commands.CommandExportDiscoveries;
 import com.wynntils.modules.questbook.configs.QuestBookConfig;
 import com.wynntils.modules.questbook.enums.QuestBookPages;
 import com.wynntils.modules.questbook.events.ClientEvents;
@@ -29,7 +28,8 @@ public class QuestBookModule extends Module {
         registerSettings(QuestBookConfig.class);
         registerOverlay(new TrackedQuestOverlay(), Priority.HIGHEST);
 
-        registerCommand(new CommandExportDiscoveries());
+        // TODO: command
+//        registerCommand(new CommandExportDiscoveries());
 
         registerKeyBinding("Open Quest Book", GLFW.GLFW_KEY_K, "Wynntils", KeyConflictContext.IN_GAME, true, () -> QuestBookPages.QUESTS.getPage().open(true));
         registerKeyBinding("Open Discoveries", GLFW.GLFW_KEY_U, "Wynntils", KeyConflictContext.IN_GAME, true, () -> QuestBookPages.DISCOVERIES.getPage().open(true));

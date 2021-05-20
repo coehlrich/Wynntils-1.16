@@ -4,13 +4,11 @@
 
 package com.wynntils.modules.core.overlays;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.ModCore;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.overlays.Overlay;
-import com.wynntils.core.framework.rendering.SmartFontRenderer;
-import com.wynntils.core.framework.rendering.colors.CommonColors;
-import com.wynntils.core.framework.rendering.colors.CustomColor;
 import com.wynntils.core.utils.Utils;
 import com.wynntils.modules.core.CoreModule;
 import com.wynntils.modules.core.config.CoreDBConfig;
@@ -18,6 +16,8 @@ import com.wynntils.modules.core.enums.UpdateStream;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.downloader.DownloaderManager;
 import com.wynntils.webapi.downloader.enums.DownloadAction;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
@@ -29,10 +29,10 @@ import java.io.IOException;
 
 public class UpdateOverlay extends Overlay {
 
-    private static CustomColor background = CustomColor.fromInt(0x333341, 1);
-    private static CustomColor box = CustomColor.fromInt(0x434355, 1);
-    private static CustomColor yes = CustomColor.fromInt(0x80fd80, 1);
-    private static CustomColor no = CustomColor.fromInt(0xfd8080, 1);
+    private static final int background = 0x333341;
+    private static final int box = 0x434355;
+    private static final int yes = 0x80fd80;
+    private static final int no = 0xfd8080;
 
     public UpdateOverlay() {
         super("Update", 20, 20, true, 1f, 0f, 0, 0, null);
@@ -46,7 +46,7 @@ public class UpdateOverlay extends Overlay {
     public static long timeout = 0;
 
     @Override
-    public void render(RenderGameOverlayEvent.Post e) {
+    public void render(RenderGameOverlayEvent.Post e, MatrixStack matrix) {
         if (e.getType() != RenderGameOverlayEvent.ElementType.ALL) {
             return;
         }
@@ -63,23 +63,35 @@ public class UpdateOverlay extends Overlay {
             timeout = System.currentTimeMillis();
         }
 
-        drawRect(background, -172, 0 - size, 0, 62 - size);
-        drawRect(box, -170, 0 - size, 0, 60 - size);
+        fill(matrix, background, -172, 0 - size, 0, 62 - size);
+        fill(matrix, box, -170, 0 - size, 0, 60 - size);
+        FontRenderer font = Minecraft.getInstance().font;
 
-        drawString("Wynntils " + TextFormatting.GREEN + "v" + Reference.VERSION + " - " + TextFormatting.WHITE + (((timeout + 35000) - System.currentTimeMillis()) / 1000) + "s left", -165, 5 - size, CommonColors.ORANGE);
+        drawString(matrix, font, new StringTextComponent("Wynntils ")
+                .append(new StringTextComponent("v" + Reference.VERSION + " - ")
+                        .withStyle(TextFormatting.GREEN))
+                .append((((timeout + 35000) - System.currentTimeMillis()) / 1000) + "s left"), -165, 5 - size, 0x99ff00);
         if (WebManager.getUpdate().getLatestUpdate().startsWith("B")) {
-            drawString(TextFormatting.YELLOW + "Build " + WebManager.getUpdate().getLatestUpdate().replace("B", "") + TextFormatting.WHITE + " is available.", -165, 15 - size, CommonColors.WHITE);
+            drawString(matrix, font, new StringTextComponent("")
+                    .append(new StringTextComponent("Build " + WebManager.getUpdate().getLatestUpdate().replace("B", "")))
+                    .append(" is available."), -165, 15 - size, 0xffffff);
         } else {
-            drawString("A new update is available " + TextFormatting.YELLOW + "v" + WebManager.getUpdate().getLatestUpdate(), -165, 15 - size, CommonColors.WHITE);
+            drawString(matrix, font, new StringTextComponent("A new update is available ")
+                    .append(new StringTextComponent("v" + WebManager.getUpdate().getLatestUpdate())
+                            .withStyle(TextFormatting.YELLOW)),
+                    -165, 15 - size, 0xffffff);
         }
 
-        drawString("Download automagically? " + TextFormatting.GREEN + "(y/n)", -165, 25 - size, CommonColors.LIGHT_GRAY);
+        drawString(matrix, font, new StringTextComponent("Download automagically? ")
+                .append(new StringTextComponent("(y/n)")
+                        .withStyle(TextFormatting.GREEN)),
+                -165, 25 - size, TextFormatting.GRAY.getColor());
 
-        drawRect(yes, -155, 40 - size, -95, 55 - size);
-        drawRect(no, -75, 40 - size, -15, 55 - size);
+        fill(matrix, yes, -155, 40 - size, -95, 55 - size);
+        fill(matrix, no, -75, 40 - size, -15, 55 - size);
 
-        drawString("Yes (y)", -125, 44 - size, CommonColors.WHITE, SmartFontRenderer.TextAlignment.MIDDLE, SmartFontRenderer.TextShadow.OUTLINE);
-        drawString("No (n)", -43, 44 - size, CommonColors.WHITE, SmartFontRenderer.TextAlignment.MIDDLE, SmartFontRenderer.TextShadow.OUTLINE);
+        drawCenteredString(matrix, font, "Yes (y)", -125, 44 - size, 0xffffff);
+        drawCenteredString(matrix, font, "No (n)", -43, 44 - size, 0xffffff);
 
         if (size > 0 && System.currentTimeMillis() - timeout < 35000) {
             size--;

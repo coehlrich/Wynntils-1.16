@@ -4,8 +4,8 @@
 
 package com.wynntils.core.events.custom;
 
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.modules.core.instances.TotemTracker;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.eventbus.api.Event;
 
 
@@ -38,9 +38,9 @@ public class SpellEvent extends Event {
 
     public static class TotemActivated extends Totem {
         private final int time;
-        private final Location location;
+        private final Vector3d location;
 
-        public TotemActivated(int time, Location location) {
+        public TotemActivated(int time, Vector3d location) {
             this.time = time;
             this.location = location;
         }
@@ -49,13 +49,13 @@ public class SpellEvent extends Event {
             return time;
         }
 
-        public Location getLocation() {
+        public Vector3d getLocation() {
             return location;
         }
     }
 
     public static class TotemRenewed extends TotemActivated {
-        public TotemRenewed(int time, Location location) {
+        public TotemRenewed(int time, Vector3d location) {
             super(time, location);
         }
     }

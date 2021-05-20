@@ -10,9 +10,8 @@ import com.wynntils.Reference;
 import com.wynntils.modules.visual.configs.VisualConfig;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.PacketBuffer;
-import net.minecraft.network.play.server.SPacketChunkData;
+import net.minecraft.network.play.server.SChunkDataPacket;
 import net.minecraft.util.math.ChunkPos;
 import org.apache.commons.io.FileUtils;
 
@@ -44,7 +43,7 @@ public class CachedChunkManager {
      * Async schedules the provided chunk to be cached
      * @param data the chunk packet data
      */
-    public static void asyncCacheChunk(SPacketChunkData data) {
+    public static void asyncCacheChunk(SChunkDataPacket data) {
         EXECUTOR.execute(() -> cacheChunk(data));
     }
 
@@ -89,7 +88,7 @@ public class CachedChunkManager {
      *
      * @param data
      */
-    private static void cacheChunk(SPacketChunkData data) {
+    private static void cacheChunk(SChunkDataPacket data) {
         if (!data.isFullChunk()) return;
 
         if (!CACHE_FOLDER.exists()) CACHE_FOLDER.mkdirs();
@@ -98,12 +97,12 @@ public class CachedChunkManager {
             LOCK.writeLock().lock();
 
             // We are saving each chunk into a different file for faster reading!
-            File chunk = new File(CACHE_FOLDER, data.getChunkX() + "_" + data.getChunkZ() + ".wchunk");
+            File chunk = new File(CACHE_FOLDER, data.getX() + "_" + data.getZ() + ".wchunk");
             if (!chunk.exists()) chunk.createNewFile();
 
             // Write the chunk data inside the buffer so we can compress
             PacketBuffer buffer = new PacketBuffer(Unpooled.buffer());
-            data.writePacketData(buffer);
+            data.write(buffer);
 
             // Compress the packet data
             byte[] original = buffer.array();
@@ -138,7 +137,7 @@ public class CachedChunkManager {
                 Thread.sleep(1000);
             } catch (Exception ignored) { }
 
-            int renderDistance = McIf.mc().options.renderDistanceChunks;
+            int renderDistance = McIf.mc().options.renderDistance;
             ChunkPos player = new ChunkPos(McIf.player().xChunk, McIf.player().zChunk);
 
             // Start by removing chunks that are not in the render distance
@@ -167,7 +166,8 @@ public class CachedChunkManager {
                     ChunkPos pos = new ChunkPos(player.x + x, player.z + z);
 
                     if (loadedChunks.contains(pos)) continue;
-                    if (McIf.world().getChunk(pos.x, pos.z).isLoaded()) continue;
+                    if (!McIf.world().getChunk(pos.x, pos.z).isEmpty())
+                        continue;
 
                     toLoad.add(pos);
                 }
@@ -216,11 +216,11 @@ public class CachedChunkManager {
                     PacketBuffer packetBuffer = new PacketBuffer(buffer);
 
                     // Create the packet
-                    SPacketChunkData packet = new SPacketChunkData();
-                    packet.readPacketData(packetBuffer);
+                    SChunkDataPacket packet = new SChunkDataPacket();
+                    packet.read(packetBuffer);
 
                     // Submit the packet to the client handler bypassing the packet sent
-                    McIf.mc().submit(() -> McIf.mc().getConnection().handleChunkData(packet));
+                    McIf.mc().submit(() -> McIf.mc().getConnection().handleLevelChunk(packet));
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();

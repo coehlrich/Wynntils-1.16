@@ -16,26 +16,25 @@ import com.wynntils.core.framework.instances.containers.ModuleContainer;
 import com.wynntils.core.framework.interfaces.Listener;
 import com.wynntils.core.framework.interfaces.annotations.ModuleInfo;
 import com.wynntils.core.framework.overlays.Overlay;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.settings.SettingsContainer;
 import com.wynntils.core.framework.settings.annotations.SettingsInfo;
 import com.wynntils.core.framework.settings.instances.SettingsHolder;
 import com.wynntils.core.utils.Utils;
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.core.utils.reflections.ReflectionFields;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.util.math.vector.Vector3d;
 import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
-import net.minecraftforge.eventbus.EventBus;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.eventbus.api.Event;
-
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.eventbus.EventBus;
+import net.minecraftforge.eventbus.api.BusBuilder;
+import net.minecraftforge.eventbus.api.Event;
 import org.apache.logging.log4j.LogManager;
 
 import java.util.*;
 
-import static net.minecraft.client.gui.screen.Screen.GUI_ICONS_LOCATION;
+import static net.minecraft.client.gui.AbstractGui.GUI_ICONS_LOCATION;
 
 public class FrameworkManager {
 
@@ -43,7 +42,7 @@ public class FrameworkManager {
     protected final static Map<Priority, List<Overlay>> registeredOverlays = new LinkedHashMap<>();
     protected final static Set<EntitySpawnCodition> registeredSpawnConditions = new HashSet<>();
 
-    private static final EventBus eventBus = new EventBus(null);
+    private static final EventBus eventBus = new EventBus(BusBuilder.builder());
 
     static {
         registeredOverlays.put(Priority.LOWEST, new ArrayList<>());
@@ -170,9 +169,10 @@ public class FrameworkManager {
                     }
                     if ((overlay.module == null || overlay.module.getModule().isActive()) && overlay.visible && overlay.active) {
                         McIf.mc().getProfiler().push(overlay.displayName);
-                        ScreenRenderer.beginGL(overlay.position.getDrawingX(), overlay.position.getDrawingY());
-                        overlay.render(e);
-                        ScreenRenderer.endGL();
+                        e.getMatrixStack().pushPose();
+                        e.getMatrixStack().translate(overlay.position.getDrawingX(), 0, overlay.position.getDrawingY());
+                        overlay.render(e, e.getMatrixStack());
+                        e.getMatrixStack().popPose();
                         McIf.mc().getProfiler().pop();
                     }
                 }
@@ -192,11 +192,10 @@ public class FrameworkManager {
 
                     if ((overlay.module == null || overlay.module.getModule().isActive()) && overlay.visible && overlay.active) {
                         McIf.mc().getProfiler().push(overlay.displayName);
-
-                        ScreenRenderer.beginGL(overlay.position.getDrawingX(), overlay.position.getDrawingY());
-                        overlay.render(e);
-                        ScreenRenderer.endGL();
-
+                        e.getMatrixStack().pushPose();
+                        e.getMatrixStack().translate(overlay.position.getDrawingX(), 0, overlay.position.getDrawingY());
+                        overlay.render(e, e.getMatrixStack());
+                        e.getMatrixStack().popPose();
                         McIf.mc().getProfiler().pop();
                     }
                 }
@@ -211,7 +210,7 @@ public class FrameworkManager {
         for (List<Overlay> overlays : registeredOverlays.values()) {
             for (Overlay overlay : overlays) {
                 if ((overlay.module == null || overlay.module.getModule().isActive()) && overlay.active) {
-                    overlay.position.refresh(ScreenRenderer.screen);
+                    overlay.position.refresh(Minecraft.getInstance().getWindow());
                     overlay.tick(e, 0);
                 }
             }
@@ -229,7 +228,7 @@ public class FrameworkManager {
             for (double y = -1; y < 6; y++) {
                 for (double z = -10; z < 10; z++) {
                     for (EntitySpawnCodition condition : registeredSpawnConditions) {
-                        Location relative = new Location(player).add(x, y, z);
+                        Vector3d relative = player.position().add(x, y, z);
                         if (!condition.shouldSpawn(relative, player.level, player, r)) continue;
 
                         EntityManager.spawnEntity(condition.createEntity(relative, player.level, player, r));

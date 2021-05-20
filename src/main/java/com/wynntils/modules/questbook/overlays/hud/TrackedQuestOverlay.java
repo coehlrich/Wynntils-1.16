@@ -4,12 +4,14 @@
 
 package com.wynntils.modules.questbook.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.overlays.Overlay;
-import com.wynntils.core.framework.rendering.SmartFontRenderer;
-import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.modules.questbook.instances.QuestInfo;
 import com.wynntils.modules.questbook.managers.QuestManager;
 import com.wynntils.modules.utilities.configs.OverlayConfig;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 
 public class TrackedQuestOverlay extends Overlay {
@@ -20,7 +22,7 @@ public class TrackedQuestOverlay extends Overlay {
 
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre e) {
+    public void render(RenderGameOverlayEvent.Pre e, MatrixStack matrix) {
         if (e.getType() != RenderGameOverlayEvent.ElementType.EXPERIENCE && e.getType() != RenderGameOverlayEvent.ElementType.JUMPBAR)
             return;
 
@@ -30,22 +32,23 @@ public class TrackedQuestOverlay extends Overlay {
         if (trackedQuest == null || trackedQuest.getSplittedDescription() == null || trackedQuest.getSplittedDescription().size() == 0)
             return;
 
+        FontRenderer font = Minecraft.getInstance().font;
         String name = trackedQuest.isMiniQuest() ? "Mini-Quest" : "Quest";
-        drawString("Tracked " + name + " Info: ", 0, 0, CommonColors.GREEN, config.textAlignment, config.textShadow);
+        drawString(matrix, font, "Tracked " + name + " Info: ", 0, 0, TextFormatting.DARK_GREEN.getColor());
 
         int currentY = 0;
         if (config.displayQuestName) {
-            drawString(trackedQuest.getName(), 0, 10 + currentY, CommonColors.LIGHT_GREEN, config.textAlignment, config.textShadow);
+            drawString(matrix, font, trackedQuest.getName(), 0, 10 + currentY, TextFormatting.GREEN.getColor());
             currentY += 10;
         }
         for (String message : trackedQuest.getSplittedDescription()) {
-            drawString(message, 0, 10 + currentY, CommonColors.WHITE, config.textAlignment, config.textShadow);
+            drawString(matrix, font, message, 0, 10 + currentY, 0xffffff);
             currentY += 10;
         }
 
         if (!QuestManager.hasInterrupted()) return;
 
-        drawString("(Open your book to update)", 0, 20 + currentY, CommonColors.WHITE, config.textAlignment, config.textShadow);
+        drawString(matrix, font, "(Open your book to update)", 0, 20 + currentY, 0xffffff);
     }
 
 }

@@ -4,6 +4,8 @@
 
 package com.wynntils.modules.core.instances;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.rendering.textures.Textures;
@@ -15,39 +17,37 @@ import com.wynntils.modules.utilities.instances.ServerIcon;
 import com.wynntils.webapi.WebManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.gui.screen.MainMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
 import net.minecraft.client.multiplayer.ServerData;
 import net.minecraft.client.multiplayer.ServerList;
-import com.wynntils.transition.GlStateManager;
-import net.minecraft.util.SoundEvents;
 import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.fml.client.FMLClientHandler;
-
-import java.util.List;
+import net.minecraft.util.SoundEvents;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 
 public class MainMenuButtons {
 
     private static ServerList serverList = null;
-    private static final int WYNNCRAFT_BUTTON_ID = 3790627;
 
     private static WynncraftButton lastButton = null;
 
     private static boolean alreadyLoaded = false;
 
-    public static void addButtons(MainMenuScreen to, List<Button> buttonList, boolean resize) {
+    public static void addButtons(GuiScreenEvent.InitGuiEvent e, boolean resize) {
         if (!CoreDBConfig.INSTANCE.addMainMenuButton) return;
 
         if (lastButton == null || !resize) {
             ServerData s = getWynncraftServerData();
-            FMLClientHandler.instance().setupServerList();
+//            FMLClientHandler.instance().setupServerList();
 
-            lastButton = new WynncraftButton(s, WYNNCRAFT_BUTTON_ID, to.width / 2 + 104, to.height / 4 + 48 + 24);
+            lastButton = new WynncraftButton(s, e.getGui().width / 2 + 104, e.getGui().height / 4 + 48 + 24, button -> {
+                clickedWynncraftButton(((WynncraftButton) button).serverIcon.getServer(), e.getGui());
+            });
             WebManager.checkForUpdates();
             UpdateOverlay.reset();
 
-            buttonList.add(lastButton);
+            e.addWidget(lastButton);
 
             // little pling when finished loading
             if (!alreadyLoaded) {
@@ -57,14 +57,9 @@ public class MainMenuButtons {
             return;
         }
 
-        lastButton.x = to.width / 2 + 104; lastButton.y = to.height / 4 + 48 + 24;
-        buttonList.add(lastButton);
-    }
-
-    public static void actionPerformed(MainMenuScreen on, Button button, List<Button> buttonList) {
-        if (button.id == WYNNCRAFT_BUTTON_ID) {
-            clickedWynncraftButton(((WynncraftButton) button).serverIcon.getServer(), on);
-        }
+        lastButton.x = e.getGui().width / 2 + 104;
+        lastButton.y = e.getGui().height / 4 + 48 + 24;
+        e.addWidget(lastButton);
     }
 
     private static void clickedWynncraftButton(ServerData server, Screen backGui) {
@@ -88,62 +83,47 @@ public class MainMenuButtons {
 
         private ServerIcon serverIcon;
 
-        WynncraftButton(ServerData server, int buttonId, int x, int y) {
-            super(buttonId, x, y, 20, 20, "");
+        WynncraftButton(ServerData server, int x, int y, IPressable onClick) {
+            super(x, y, 20, 20, StringTextComponent.EMPTY, onClick);
 
             serverIcon = new ServerIcon(server, true);
             serverIcon.onDone(r -> serverList.save());
         }
 
         @Override
-        public void drawButton(Minecraft minecraft, int mouseX, int mouseY, float partialTicks) {
+        public void renderButton(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
             if (!visible) return;
 
-            super.drawButton(minecraft, mouseX, mouseY, partialTicks);
+            super.renderButton(matrix, mouseX, mouseY, partialTicks);
 
             ServerIcon.ping();
             ResourceLocation icon = serverIcon.getServerIcon();
             if (icon == null) icon = ServerIcon.UNKNOWN_SERVER;
-            minecraft.getTextureManager().bind(icon);
+            Minecraft.getInstance().getTextureManager().bind(icon);
 
             boolean hasUpdate = hasUpdate();
 
-            GlStateManager.pushMatrix();
+            matrix.pushPose();
 
-            GlStateManager.translate(x + 2, y + 2, 0);
-            GlStateManager.scale(0.5f, 0.5f, 0);
-            GlStateManager.enableBlend();
-            drawModalRectWithCustomSizedTexture(0, 0, 0.0F, 0.0F, 32, 32, 32.0F, 32.0F);
+            matrix.translate(x + 2, y + 2, 0);
+            matrix.scale(0.5f, 0.5f, 0);
+            RenderSystem.enableBlend();
+            blit(matrix, 0, 0, 0.0F, 0.0F, 32, 32, 32, 32);
             if (!hasUpdate) {
-                GlStateManager.disableBlend();
+                RenderSystem.disableBlend();
             }
 
-            GlStateManager.popMatrix();
+            matrix.popPose();
 
             if (hasUpdate) {
                 Textures.UIs.main_menu.bind();
                 // When not provided with the texture size vanilla automatically assumes both the height and width are 256
-                drawTexturedModalRect(x, y, 0, 0, 20, 20);
+                blit(matrix, x, y, 0, 0, 20, 20);
             }
 
-            GlStateManager.disableBlend();
+            RenderSystem.disableBlend();
         }
 
-    }
-
-    public static class FakeGui extends Screen {
-        FakeGui() {
-            doAction();
-        }
-
-        @Override
-        public void init() {
-            doAction();
-        }
-
-        private static void doAction() {
-            clickedWynncraftButton(getWynncraftServerData(), null);
-        }
     }
 
 }

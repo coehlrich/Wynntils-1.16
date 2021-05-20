@@ -6,10 +6,12 @@ package com.wynntils.core.utils;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
-import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CustomColor;
 import com.wynntils.core.utils.helpers.MD5Verification;
+import net.minecraft.util.text.Color;
+import net.minecraft.util.text.IFormattableTextComponent;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 
 import java.nio.charset.StandardCharsets;
 import java.text.DecimalFormat;
@@ -109,26 +111,6 @@ public class StringUtils {
             }
             result.append(string).append(' ');
             length += string.length() + 1;  // +1 for the space following
-        }
-
-        return result.toString().split("\\|");
-    }
-
-    public static String[] wrapTextBySize(String s, int maxPixels) {
-        SmartFontRenderer renderer = ScreenRenderer.font;
-        int spaceSize = renderer.width(" ");
-
-        String[] stringArray = s.split(" ");
-        StringBuilder result = new StringBuilder();
-        int length = 0;
-
-        for (String string : stringArray) {
-            if (length + renderer.width(string) >= maxPixels) {
-                result.append('|');
-                length = 0;
-            }
-            result.append(string).append(' ');
-            length += renderer.width(string) + spaceSize;
         }
 
         return result.toString().split("\\|");
@@ -451,6 +433,19 @@ public class StringUtils {
 
     public static String quoteIfContainsSpace(String str) {
         return str.indexOf(' ') == -1 ? str : ('"' + str + '"');
+    }
+
+    public static ITextComponent rainbow(String text) {
+        IFormattableTextComponent base = new StringTextComponent("");
+        float z = 2000f;
+        for (int i = 0; i < text.length(); i++) {
+            long time = System.currentTimeMillis() - i * 100;
+            int color = java.awt.Color.HSBtoRGB((float) (time % (int) z) / z, 0.8f, 0.8f);
+            base.append(new StringTextComponent(String.valueOf(text.charAt(i)))
+                    .withStyle((style) -> style
+                            .withColor(Color.fromRgb(color))));
+        }
+        return base;
     }
 
 }

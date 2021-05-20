@@ -4,19 +4,19 @@
 
 package com.wynntils.modules.map.overlays.ui;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.rendering.ScreenRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.core.utils.Utils;
 import com.wynntils.modules.core.config.CoreDBConfig;
-import com.wynntils.modules.map.MapModule;
 import com.wynntils.modules.map.configs.MapConfig;
 import com.wynntils.modules.map.instances.PathWaypointProfile;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.widget.button.Button;
+import net.java.games.input.Mouse;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import org.lwjgl.input.Mouse;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -41,22 +41,26 @@ public class PathWaypointOverwiewUI extends Screen {
 
         pageHeight = (this.height - 100) / 25;
         setEditButtons();
-        this.buttonList.add(newBtn = new Button(-1, this.width/2 - 20, this.height - 45, 40, 20, "NEW"));
+        newBtn = addButton(new Button(this.width / 2 - 20, this.height - 45, 40, 20, new StringTextComponent("NEW"), button -> {
+            McIf.mc().setScreen(new PathWaypointCreationUI());
+        }));
         this.buttonList.add(nextPageBtn = new Button(0, this.width/2 + 24, this.height - 45, 20, 20, ">"));
         this.buttonList.add(previousPageBtn = new Button(1, this.width/2 - 44, this.height - 45, 20, 20, "<"));
-        this.buttonList.add(exitBtn = new Button(2, this.width - 40, 20, 20, 20, TextFormatting.RED + "X"));
+        exitBtn = addButton(new Button(this.width - 40, 20, 20, 20, new StringTextComponent("X").withStyle(TextFormatting.RED), button -> {
+            Utils.setScreen(new MainWorldMapUI());
+        }));
         checkAvailablePages();
     }
 
     @Override
     public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        drawDefaultBackground();
+        renderBackground(matrix);
         super.render(matrix, mouseX, mouseY, partialTicks);
-        font.drawString(TextFormatting.BOLD + "Icon", this.width/2 - 185, 39, 0xFFFFFF);
-        font.drawString(TextFormatting.BOLD + "Name", this.width/2 - 150, 39, 0xFFFFFF);
-        drawCenteredString(font, TextFormatting.BOLD + "X", this.width/2 + 20, 39, 0xFFFFFF);
-        drawCenteredString(font, TextFormatting.BOLD + "Z", this.width/2 + 60, 39, 0xFFFFFF);
-        drawRect(this.width/2 - 185, 48, this.width/2 + 170, 49, 0xFFFFFFFF);
+        font.draw(matrix, TextFormatting.BOLD + "Icon", this.width / 2 - 185, 39, 0xFFFFFF);
+        font.draw(matrix, TextFormatting.BOLD + "Name", this.width / 2 - 150, 39, 0xFFFFFF);
+        drawCenteredString(matrix, font, TextFormatting.BOLD + "X", this.width / 2 + 20, 39, 0xFFFFFF);
+        drawCenteredString(matrix, font, TextFormatting.BOLD + "Z", this.width / 2 + 60, 39, 0xFFFFFF);
+        fill(matrix, this.width / 2 - 185, 48, this.width / 2 + 170, 49, 0xFFFFFFFF);
 
         ScreenRenderer.beginGL(0, 0);
         for (int i = 0; i < Math.min(pageHeight, paths.size() - pageHeight * page); i++) {
@@ -80,29 +84,6 @@ public class PathWaypointOverwiewUI extends Screen {
             }
         }
         ScreenRenderer.endGL();
-    }
-
-    @Override
-    protected void actionPerformed(Button b) {
-        if (b == nextPageBtn) {
-            page++;
-            checkAvailablePages();
-            setEditButtons();
-        } else if (b == previousPageBtn) {
-            page--;
-            checkAvailablePages();
-            setEditButtons();
-        } else if (b == exitBtn) {
-            Utils.setScreen(new MainWorldMapUI());
-        } else if (b.id % 10 == 3) {
-            McIf.mc().setScreen(new PathWaypointCreationUI(paths.get(b.id / 10 + page * pageHeight)));
-        } else if (b.id %10 == 5) {
-            MapConfig.Waypoints.INSTANCE.pathWaypoints.remove(paths.get(b.id / 10 + page * pageHeight));
-            MapConfig.Waypoints.INSTANCE.saveSettings(MapModule.getModule());
-            McIf.mc().setScreen(new PathWaypointOverwiewUI());
-        } else if (b == newBtn) {
-            McIf.mc().setScreen(new PathWaypointCreationUI());
-        }
     }
 
     private void checkAvailablePages() {

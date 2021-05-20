@@ -14,6 +14,7 @@ import net.minecraft.world.IWorldEventListener;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -37,16 +38,12 @@ public class PlayerEntityManager {
         return map.containsKey(uuid);
     }
 
-    static void onPlayerJoin(PlayerEntity e) {
+    public static void onPlayerJoin(PlayerEntity e) {
         map.put(e.getUUID(), e);
     }
 
-    static void onPlayerLeave(PlayerEntity e) {
+    public static void onPlayerLeave(PlayerEntity e) {
         map.remove(e.getUUID());
-    }
-
-    public static void onWorldLoad(World w) {
-        w.addEventListener(new Listener());
     }
 
     public static void onWorldUnload() {

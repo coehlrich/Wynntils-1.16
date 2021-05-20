@@ -7,7 +7,6 @@ package com.wynntils.modules.map.instances;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
 import com.wynntils.core.framework.rendering.colors.CustomColor;
 import com.wynntils.core.utils.objects.CubicSplines;
-import com.wynntils.core.utils.objects.Location;
 import com.wynntils.core.utils.objects.Pair;
 import com.wynntils.modules.map.configs.MapConfig;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
@@ -15,9 +14,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Vector3d;
 
 import javax.vecmath.Point3d;
-import javax.vecmath.Vector3d;
+
 import java.util.*;
 
 public class LootRunPath {
@@ -38,7 +38,7 @@ public class LootRunPath {
     private transient Long2ObjectMap<List<List<LootRunPath.LootRunPathLocation>>> lastRoughSampleByChunk;
     private transient Long2ObjectMap<List<List<Vector3d>>> lastRoughDerivativeByChunk;
 
-    public LootRunPath(Collection<? extends Point3d> points, Collection<? extends BlockPos> chests, Collection<LootRunNote> notes) {
+    public LootRunPath(Collection<? extends Vector3d> points, Collection<? extends BlockPos> chests, Collection<LootRunNote> notes) {
         this.spline = new CubicSplines.Spline3D(points);
         this.chests = new LinkedHashSet<>(chests == null ? 11 : Math.max(2 * chests.size(), 11));
         this.notes = new LinkedHashSet<>(notes == null ? 5 : notes.size());
@@ -117,12 +117,12 @@ public class LootRunPath {
         return Collections.unmodifiableSet(chests);
     }
 
-    public List<Location> getPoints() {
+    public List<Vector3d> getPoints() {
         return spline.getPoints();
     }
 
-    public Location getLastPoint() {
-        List<Location> points = getPoints();
+    public Vector3d getLastPoint() {
+        List<Vector3d> points = getPoints();
         return points.isEmpty() ? null : points.get(points.size() - 1);
     }
 
@@ -138,8 +138,8 @@ public class LootRunPath {
     }
 
     private Pair<List<LootRunPath.LootRunPathLocation>, List<Vector3d>> generatePoints(int sampleRate) {
-        Pair<List<Location>, List<Vector3d>> sample = spline.sample(sampleRate);
-        List<Location> rawLocations = sample.a;
+        Pair<List<Vector3d>, List<Vector3d>> sample = spline.sample(sampleRate);
+        List<Vector3d> rawLocations = sample.a;
         List<LootRunPath.LootRunPathLocation> locations = new ArrayList<>();
         Iterator<CustomColor> colorIterator = COLORS.iterator();
         CustomColor currentColor = null;

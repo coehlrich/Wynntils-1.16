@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.PlayerInfo;
@@ -42,7 +43,7 @@ public class GameUpdateOverlay extends Overlay {
     private static final CustomColor alphaColor = new CustomColor(1, 1, 1, 1);
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!Reference.onWorld || !PlayerInfo.get(CharacterData.class).isLoaded() || event.getType() != RenderGameOverlayEvent.ElementType.ALL)
             return;
         staticSize.y = LINE_HEIGHT * OverlayConfig.GameUpdate.INSTANCE.messageLimit;

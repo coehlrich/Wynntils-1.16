@@ -7,10 +7,8 @@ package com.wynntils.core.utils;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.wynntils.McIf;
 import com.wynntils.core.utils.reflections.ReflectionFields;
-import net.minecraft.client.MainWindow;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.inventory.ContainerScreen;
-import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -21,10 +19,9 @@ import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.scoreboard.Team;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraft.world.World;
-import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.common.MinecraftForge;
 import org.lwjgl.glfw.GLFW;
 
 import java.awt.Toolkit;
@@ -35,8 +32,8 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.*;
 import java.net.URLEncoder;
 import java.nio.channels.FileChannel;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.*;
 import java.util.regex.Matcher;
@@ -195,33 +192,33 @@ public class Utils {
      *
      * @param screen the provided screen
      */
-    public static void setScreen(Screen screen) {
-        Screen oldScreen = McIf.mc().screen;
-
-        GuiOpenEvent event = new GuiOpenEvent(screen);
-        if (MinecraftForge.EVENT_BUS.post(event)) return;
-        screen = event.getGui();
-
-        if (oldScreen == screen) return;
-        if (oldScreen != null) {
-            oldScreen.onClose();
-        }
-
-        McIf.mc().screen = screen;
-
-        if (screen != null) {
-//            McIf.mc().set;
-
-            MainWindow scaledresolution = new MainWindow(McIf.mc());
-            int i = scaledresolution.getGuiScaledWidth();
-            int j = scaledresolution.getGuiScaledHeight();
-            screen.setWorldAndResolution(McIf.mc(), i, j);
-            McIf.mc().skipRenderWorld = false;
-        } else {
-            McIf.mc().getSoundManager().resumeSounds();
-            McIf.mc().setIngameFocus();
-        }
-    }
+//    public static void setScreen(Screen screen) {
+//        Screen oldScreen = McIf.mc().screen;
+//
+//        GuiOpenEvent event = new GuiOpenEvent(screen);
+//        if (MinecraftForge.EVENT_BUS.post(event)) return;
+//        screen = event.getGui();
+//
+//        if (oldScreen == screen) return;
+//        if (oldScreen != null) {
+//            oldScreen.onClose();
+//        }
+//
+//        McIf.mc().screen = screen;
+//
+//        if (screen != null) {
+////            McIf.mc().set;
+//
+//            MainWindow scaledresolution = McIf.mc().getWindow();
+//            int i = scaledresolution.getGuiScaledWidth();
+//            int j = scaledresolution.getGuiScaledHeight();
+//            screen.setWorldAndResolution(McIf.mc(), i, j);
+//            McIf.mc().skipRenderWorld = false;
+//        } else {
+//            McIf.mc().getSoundManager().resumeSounds();
+//            McIf.mc().setIngameFocus();
+//        }
+//    }
 
     private static int doubleClickTime = -1;
 
@@ -356,40 +353,41 @@ public class Utils {
         }
     }
 
-    public static void tab(int amount, TextFieldWidget... tabList) {
-        tab(amount, Arrays.asList(tabList));
-    }
+//    public static void tab(int amount, TextFieldWidget... tabList) {
+//        tab(amount, Arrays.asList(tabList));
+//    }
 
     /**
      * Given a list of text fields, blur the currently focused field and focus the
      * next one (or previous one if amount is -1), wrapping around.
      * Focuses the first one if there is no focused field.
      */
-    public static void tab(int amount, List<TextFieldWidget> tabList) {
-        int focusIndex = -1;
-        for (int i = 0; i < tabList.size(); ++i) {
-            TextFieldWidget field = tabList.get(i);
-            if (field.isFocused()) {
-                focusIndex = i;
-                field.setCursorPosition(0);
-                field.setSelectionPos(0);
-                field.setFocused(false);
-                break;
-            }
-        }
-        focusIndex = focusIndex == -1 ? 0 : Math.floorMod(focusIndex + amount, tabList.size());
-        TextFieldWidget selected = tabList.get(focusIndex);
-        selected.setFocused(true);
-        selected.setCursorPosition(0);
-        selected.setSelectionPos(selected.getText().length());
-    }
+//    public static void tab(int amount, List<TextFieldWidget> tabList) {
+//        int focusIndex = -1;
+//        for (int i = 0; i < tabList.size(); ++i) {
+//            TextFieldWidget field = tabList.get(i);
+//            if (field.isFocused()) {
+//                focusIndex = i;
+//                field.setCursorPosition(0);
+//                field.setSelectionPos(0);
+//                field.setFocused(false);
+//                break;
+//            }
+//        }
+//        focusIndex = focusIndex == -1 ? 0 : Math.floorMod(focusIndex + amount, tabList.size());
+//        TextFieldWidget selected = tabList.get(focusIndex);
+//        selected.setFocused(true);
+//        selected.setCursorPosition(0);
+//        selected.setSelectionPos(selected.getText().length());
+//    }
 
-    public static String getNameFromMetadata(List <EntityDataManager.DataEntry<?>> dataManagerEntries) {
+    public static ITextComponent getNameFromMetadata(List<EntityDataManager.DataEntry<?>> dataManagerEntries) {
         assert NAME_KEY != null;
         if (dataManagerEntries != null) {
             for (EntityDataManager.DataEntry<?> entry : dataManagerEntries) {
-                if (NAME_KEY.equals(entry.getKey())) {
-                    return (String) entry.getValue();
+                if (NAME_KEY.equals(entry.getAccessor())) {
+                    Optional<ITextComponent> optional = (Optional<ITextComponent>) entry.getValue();
+                    return optional.orElse(null);
                 }
             }
         }
@@ -400,7 +398,7 @@ public class Utils {
         assert NAME_VISIBLE_KEY != null;
         if (dataManagerEntries != null) {
             for (EntityDataManager.DataEntry<?> entry : dataManagerEntries) {
-                if (NAME_VISIBLE_KEY.equals(entry.getKey())) {
+                if (NAME_VISIBLE_KEY.equals(entry.getAccessor())) {
                     return (Boolean) entry.getValue();
                 }
             }
@@ -413,7 +411,7 @@ public class Utils {
         assert ITEM_KEY != null;
         if (dataManagerEntries != null) {
             for (EntityDataManager.DataEntry<?> entry : dataManagerEntries) {
-                if (ITEM_KEY.equals(entry.getKey())) {
+                if (ITEM_KEY.equals(entry.getAccessor())) {
                     return (ItemStack) entry.getValue();
                 }
             }
@@ -429,7 +427,7 @@ public class Utils {
 
     public static boolean isAirBlock(World world, BlockPos pos)
     {
-        return world.getBlockState(pos).getBlock().isAir(world.getBlockState(pos), this, pos);
+        return world.getBlockState(pos).getBlock().isAir(world.getBlockState(pos), world, pos);
     }
 
     // Alias if using already imported org.apache.commons.lang3.StringUtils

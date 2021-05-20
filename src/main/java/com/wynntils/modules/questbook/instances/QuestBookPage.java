@@ -4,14 +4,12 @@
 
 package com.wynntils.modules.questbook.instances;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
-import com.wynntils.core.framework.enums.wynntils.WynntilsSound;
-import com.wynntils.core.framework.rendering.ScreenRenderer;
-import com.wynntils.core.framework.rendering.SmartFontRenderer;
-import com.wynntils.core.framework.rendering.colors.CommonColors;
+import com.wynntils.WynntilsSounds;
 import com.wynntils.core.framework.rendering.colors.CustomColor;
-import com.wynntils.core.framework.rendering.textures.Textures;
 import com.wynntils.core.utils.StringUtils;
 import com.wynntils.core.utils.reference.Easing;
 import com.wynntils.modules.core.config.CoreDBConfig;
@@ -19,22 +17,25 @@ import com.wynntils.modules.core.enums.UpdateStream;
 import com.wynntils.modules.questbook.configs.QuestBookConfig;
 import com.wynntils.modules.questbook.enums.QuestBookPages;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.GuiPageButtonList;
+import net.minecraft.client.audio.SimpleSound;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import com.wynntils.transition.GlStateManager;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.widget.button.ImageButton;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.util.IReorderingProcessor;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-import org.lwjgl.glfw.GLFW;
-import org.lwjgl.input.Mouse;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class QuestBookPage extends Screen {
 
-    protected final ScreenRenderer render = new ScreenRenderer();
     private long time;
     private boolean open = false;
 
@@ -42,7 +43,7 @@ public class QuestBookPage extends Screen {
     private String title;
     private IconContainer icon;
     protected boolean showAnimation;
-    protected List<String> hoveredText = new ArrayList<>();
+    protected List<ITextComponent> hoveredText = new ArrayList<>();
 
     private boolean showSearchBar;
     protected int currentPage;
@@ -50,6 +51,8 @@ public class QuestBookPage extends Screen {
     protected int pages = 1;
     protected int selected;
     protected TextFieldWidget textField = null;
+    protected Button rightPage = null;
+    protected Button leftPage = null;
 
     // Animation
     protected long lastTick;
@@ -63,9 +66,14 @@ public class QuestBookPage extends Screen {
     protected static final CustomColor background_3 = CustomColor.fromInt(0x00ff00, 0.3f);
     protected static final CustomColor background_4 = CustomColor.fromInt(0x008f00, 0.2f);
 
-    protected static final CustomColor unselected_cube = new CustomColor(0, 0, 0, 0.2f);
-    protected static final CustomColor selected_cube = new CustomColor(0, 0, 0, 0.3f);
-    protected static final CustomColor selected_cube_2 = CustomColor.fromInt(0x11c920, 0.3f);
+    protected static final int unselected_cube = 0x33000000;
+    protected static final int selected_cube = 0x4d000000;
+    protected static final int selected_cube_2 = 0x4d11c920;
+
+    public static final ResourceLocation QUESTBOOK = new ResourceLocation("wynntils", "textures/screens/quest_book/quest_book.png");
+    public static final ResourceLocation PAGE_ICONS = new ResourceLocation("wynntils", "textures/screens/quest_book/icons.png");
+    public static int WIDTH = 512;
+    public static int HEIGHT = 512;
 
     /**
      * Base class for all questbook pages
@@ -74,6 +82,7 @@ public class QuestBookPage extends Screen {
      * @param icon the icon that corresponds to the page
      */
     public QuestBookPage(String title, boolean showSearchBar, IconContainer icon) {
+        super(new StringTextComponent(title));
         this.title = title;
         this.showSearchBar = showSearchBar;
         this.icon = icon;
@@ -96,151 +105,168 @@ public class QuestBookPage extends Screen {
         currentPage = 1;
         selected = 0;
         searchUpdate("");
-        refreshAccepts();
         time = McIf.getSystemTime();
         lastTick = McIf.getSystemTime();
 
         if (showSearchBar) {
-            textField = new TextFieldWidget(0, McIf.mc().font, width / 2 + 32, height / 2 - 97, 113, 23);
-            textField.setFocused(!QuestBookConfig.INSTANCE.searchBoxClickRequired);
-            textField.setMaxStringLength(50);
-            textField.setEnableBackgroundDrawing(false);
+            textField = new TextFieldWidget(McIf.mc().font, width / 2 + 32, height / 2 - 97, 113, 23, new StringTextComponent("Search"));
+            textField.changeFocus(!QuestBookConfig.INSTANCE.searchBoxClickRequired);
+            textField.setMaxLength(50);
+            textField.setBordered(false);
             textField.setCanLoseFocus(QuestBookConfig.INSTANCE.searchBoxClickRequired);
-            textField.setGuiResponder(new GuiPageButtonList.GuiResponder() {
-
-                @Override
-                public void setEntryValue(int id, String value) {
-                    searchUpdate(value);
-                }
-
-                @Override
-                public void setEntryValue(int id, float value) {}
-
-                @Override
-                public void setEntryValue(int id, boolean value) {}
-            });
+            textField.setResponder(this::searchUpdate);
         }
 
-        Keyboard.enableRepeatEvents(true);
     }
 
-    @Override
-    public void onGuiClosed() {
-        Keyboard.enableRepeatEvents(false);
+    public void addBackAndForwardButtons() {
+        int middleX = width / 2;
+        int middleY = height / 2;
+        rightPage = addButton(new ImageButton(middleX + 128, middleY + 88, 18, 10, 100, 281, 10, QUESTBOOK, WIDTH, HEIGHT, button -> {
+            goForward();
+        }));
     }
 
-    @Override
-    public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        super.render(matrix, mouseX, mouseY, partialTicks);
+    public void addMenuButton() {
+        int middleX = width / 2;
+        int middleY = height / 2;
+        addButton(new ImageButton(middleX - 90, middleY - 46, 16, 9, 118, 301, 9, QUESTBOOK, WIDTH, HEIGHT, button -> {
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
+            QuestBookPages.MAIN.getPage().open(false);
+        }, (button, matrix, mouseX, mouseY) -> {
+            Minecraft.getInstance().screen.renderComponentTooltip(matrix, Arrays.asList(
+                    new StringTextComponent("[>] ")
+                            .withStyle(TextFormatting.GOLD)
+                            .append(new StringTextComponent("Back to Menu")
+                                    .withStyle(TextFormatting.BOLD)),
+                    new StringTextComponent("Click here to go")
+                            .withStyle(TextFormatting.GRAY),
+                    new StringTextComponent("back to the main page")
+                            .withStyle(TextFormatting.GRAY),
+                    StringTextComponent.EMPTY,
+                    new StringTextComponent("Left click to select")
+                            .withStyle(TextFormatting.GREEN)),
+                    mouseX, mouseY);
+        }, new StringTextComponent("Back to Menu")));
+    }
 
+    public void renderQuestBook(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
         int x = width / 2;
         int y = height / 2;
 
-        ScreenRenderer.beginGL(0, 0);
-        {
-            if (showAnimation) {
-                float animationTick = Easing.BACK_IN.ease((McIf.getSystemTime() - time) + 1000, 1f, 1f, 600f);
-                animationTick /= 10f;
+        matrix.pushPose();
+        if (showAnimation) {
+            float animationTick = Easing.BACK_IN.ease((McIf.getSystemTime() - time) + 1000, 1f, 1f, 600f);
+            animationTick /= 10f;
 
-                if (animationTick <= 1) {
-                    ScreenRenderer.scale(animationTick);
+            if (animationTick <= 1) {
+                matrix.scale(animationTick, animationTick, animationTick);
 
-                    x = (int) (x / animationTick);
-                    y = (int) (y / animationTick);
-                } else {
-                    ScreenRenderer.resetScale();
-                    showAnimation = false;
-                }
-
+                x = (int) (x / animationTick);
+                y = (int) (y / animationTick);
             } else {
-                x = width / 2;
-                y = height / 2;
+                showAnimation = false;
             }
 
-            render.drawRect(Textures.UIs.quest_book, x - (339 / 2), y - (220 / 2), 0, 0, 339, 220);
-
-            ScreenRenderer.scale(0.7f);
-            render.drawString(CoreDBConfig.INSTANCE.updateStream == UpdateStream.STABLE ? "Stable v" + Reference.VERSION : "CE Build " + (Reference.BUILD_NUMBER == -1 ? "?" : Reference.BUILD_NUMBER), (x - 80) / 0.7f, (y + 86) / 0.7f, CommonColors.YELLOW, SmartFontRenderer.TextAlignment.MIDDLE, SmartFontRenderer.TextShadow.NORMAL);
-            ScreenRenderer.resetScale();
-
-            render.drawRect(Textures.UIs.quest_book, x - 168, y - 81, 34, 222, 168, 33);
-
-            ScreenRenderer.scale(2f);
-            render.drawString(title, (x - 158f) / 2.0f, (y - 74) / 2.0f, CommonColors.YELLOW, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
-            ScreenRenderer.resetScale();
-
-            /*Render search bar when needed*/
-            if (showSearchBar) {
-                drawSearchBar(x, y);
-            }
+        } else {
+            x = width / 2;
+            y = height / 2;
         }
+        TextureManager manager = Minecraft.getInstance().getTextureManager();
+        manager.bind(QUESTBOOK);
 
-        ScreenRenderer.endGL();
+        FontRenderer font = Minecraft.getInstance().font;
+
+        blit(matrix, x - (339 / 2), y - (220 / 2), 0, 0, 339, 220, WIDTH, HEIGHT);
+
+        blit(matrix, x - 168, y - 81, 34, 222, 168, 33, WIDTH, HEIGHT);
+
+        matrix.pushPose();
+        matrix.scale(0.7f, 0.7f, 0.7f);
+        drawCenteredStringNoShadow(matrix, font, CoreDBConfig.INSTANCE.updateStream == UpdateStream.STABLE ? "Stable v" + Reference.VERSION : "CE Build " + (Reference.BUILD_NUMBER == -1 ? "?" : Reference.BUILD_NUMBER), (int) ((x - 80) / 0.7f), (int) ((y + 86) / 0.7f), TextFormatting.YELLOW.getColor());
+        matrix.popPose();
+
+        matrix.pushPose();
+        matrix.scale(2f, 2f, 2f);
+        font.draw(matrix, title, (int) ((x - 158f) / 2.0f), (int) ((y - 74) / 2.0f), TextFormatting.YELLOW.getColor());
+        matrix.popPose();
+//
+//        /* Render search bar when needed */
+//        if (showSearchBar) {
+//            drawSearchBar(x, y);
+//        }
+//
+//        matrix.popPose();
     }
 
     protected void drawSearchBar(int centerX, int centerY) {
-        render.drawRect(Textures.UIs.quest_book, centerX + 13, centerY - 109, 52, 255, 133, 23);
-        textField.drawTextBox();
+//        render.drawRect(Textures.UIs.quest_book, centerX + 13, centerY - 109, 52, 255, 133, 23);
+//        textField.drawTextBox();
+    }
+
+    public void drawCenteredStringNoShadow(MatrixStack p_238471_0_, FontRenderer p_238471_1_, String p_238471_2_, int p_238471_3_, int p_238471_4_, int p_238471_5_) {
+        p_238471_1_.draw(p_238471_0_, p_238471_2_, (float) (p_238471_3_ - p_238471_1_.width(p_238471_2_) / 2), (float) p_238471_4_, p_238471_5_);
+    }
+
+    public void drawCenteredStringNoShadow(MatrixStack p_238472_0_, FontRenderer p_238472_1_, ITextComponent p_238472_2_, int p_238472_3_, int p_238472_4_, int p_238472_5_) {
+        IReorderingProcessor ireorderingprocessor = p_238472_2_.getVisualOrderText();
+        p_238472_1_.draw(p_238472_0_, ireorderingprocessor, (float) (p_238472_3_ - p_238472_1_.width(ireorderingprocessor) / 2), (float) p_238472_4_, p_238472_5_);
     }
 
     @Override
-    public void mouseClicked(int mouseX, int mouseY, int mouseButton) throws IOException {
-        if (!showSearchBar) return;
+    public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
+        if (showSearchBar && textField.mouseClicked(mouseX, mouseY, mouseButton)) {
+            return true;
+        }
 
-        textField.mouseClicked(mouseX, mouseY, mouseButton);
-
-        if (mouseButton != 1) return;
-        if (mouseX < textField.x || mouseX >= textField.x + textField.width) return;
-        if (mouseY < textField.y || mouseY >= textField.y + textField.height) return;
-
-        textField.setText("");
-        searchUpdate("");
+        return super.mouseClicked(mouseX, mouseY, mouseButton);
     }
 
     @Override
-    public void handleMouseInput() throws IOException {
-        int mDWheel = Mouse.getEventDWheel() * CoreDBConfig.INSTANCE.scrollDirection.getScrollDirection();
+    public boolean mouseScrolled(double double1, double double2, double scrollDelta) {
+        int mDWheel = (int) (scrollDelta * CoreDBConfig.INSTANCE.scrollDirection.getScrollDirection());
 
         if (mDWheel <= -1 && (McIf.getSystemTime() - delay >= 15)) {
             if (acceptNext) {
                 delay = McIf.getSystemTime();
                 goForward();
+                return true;
             }
         } else if (mDWheel >= 1 && (McIf.getSystemTime() - delay >= 15)) {
             if (acceptBack) {
                 delay = McIf.getSystemTime();
                 goBack();
+                return true;
             }
         }
-        super.handleMouseInput();
+        return super.mouseScrolled(double1, double2, scrollDelta);
     }
 
     @Override
-    public void keyTyped(char typedChar, int keyCode) throws IOException {
-        if (keyCode == GLFW.GLFW_KEY_LEFT_SHIFT || keyCode == GLFW.GLFW_KEY_RIGHT_SHIFT || keyCode == GLFW.GLFW_KEY_LCONTROL || keyCode == GLFW.GLFW_KEY_RCONTROL) return;
+    public boolean charTyped(char typedChar, int keyCode) {
         if (showSearchBar) {
-            textField.textboxKeyTyped(typedChar, keyCode);
+            boolean returnValue = textField.charTyped(typedChar, keyCode);
             currentPage = 1;
-            refreshAccepts();
+            updatePage();
             updateSearch();
+            return returnValue;
         }
-        super.keyTyped(typedChar, keyCode);
+        return super.charTyped(typedChar, keyCode);
     }
 
     @Override
-    public void updateScreen() {
+    public void tick() {
         if (showSearchBar) {
-            textField.updateCursorCounter();
+            textField.tick();
         }
     }
 
-    protected void renderHoveredText(int mouseX, int mouseY) {
-        ScreenRenderer.beginGL(0, 0);
-        {
-            GlStateManager.disableLighting();
-            if (hoveredText != null) drawHoveringText(hoveredText, mouseX, mouseY);
-        }
-        ScreenRenderer.endGL();
+    protected void renderHoveredText(MatrixStack matrix, int mouseX, int mouseY) {
+        matrix.pushPose();
+        RenderSystem.disableLighting();
+        if (hoveredText != null)
+            renderComponentTooltip(matrix, hoveredText, mouseX, mouseY);
+        matrix.popPose();
     }
 
     protected void searchUpdate(String currentText) { }
@@ -251,21 +277,21 @@ public class QuestBookPage extends Screen {
 
     protected void goForward() {
         if (acceptNext) {
-            WynntilsSound.QUESTBOOK_PAGE.play();
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
             currentPage++;
-            refreshAccepts();
+            updatePage();
         }
     }
 
     protected void goBack() {
         if (acceptBack) {
-            WynntilsSound.QUESTBOOK_PAGE.play();
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
             currentPage--;
-            refreshAccepts();
+            updatePage();
         }
     }
 
-    protected void refreshAccepts() {
+    protected void updatePage() {
         acceptBack = currentPage > 1;
         acceptNext = currentPage < pages;
     }
@@ -273,13 +299,14 @@ public class QuestBookPage extends Screen {
     public void open(boolean showAnimation) {
         this.showAnimation = showAnimation;
 
-        if (showAnimation) WynntilsSound.QUESTBOOK_OPENING.play(); // sfx
+        if (showAnimation)
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_OPENING.get(), 1f)); // sfx
         McIf.mc().setScreen(this);
     }
 
     public void updateSearch() {
         if (showSearchBar && textField != null) {
-            searchUpdate(textField.getText());
+            searchUpdate(textField.getValue());
         }
     }
 
@@ -291,7 +318,9 @@ public class QuestBookPage extends Screen {
      * Can be null
      * @return a list of strings - each index representing a new line.
      */
-    public List<String> getHoveredDescription() { return hoveredText; }
+    public List<ITextComponent> getHoveredDescription() {
+        return hoveredText;
+    }
 
     /**
      * Draw the Menu Button
@@ -301,77 +330,16 @@ public class QuestBookPage extends Screen {
      * @param posX mouseX (from drawingOrigin)
      * @param posY mouseY (from drawingOrigin)
      */
-    protected void drawMenuButton(int x, int y, int posX, int posY) {
-        if (posX >= 74 && posX <= 90 && posY >= 37 & posY <= 46) {
-            render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 238, 234, 16, 9);
-            hoveredText = Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Back to Menu", TextFormatting.GRAY + "Click here to go", TextFormatting.GRAY + "back to the main page", "", TextFormatting.GREEN + "Left click to select");
-            return;
-        }
-
-        render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 222, 234, 16, 9);
-    }
-
-    /**
-     * Draws the Forward and Back Button
-     *
-     * @param x drawingOrigin x
-     * @param y drawingOrigin y
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     */
-    protected void drawForwardAndBackButtons(int x, int y, int posX, int posY, int currentPage, int pages) {
-        drawForwardButton(x, y, posX, posY, currentPage == pages);
-        drawBackButton(x, y, posX, posY, currentPage == 1);
-    }
-
-    /**
-     * Draws the Forward Button
-     *
-     * @param x drawingOrigin x
-     * @param y drawingOrigin y
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     * @param atLimit whether the button can be pressed
-     */
-    protected void drawForwardButton(int x, int y, int posX, int posY, boolean atLimit) {
-        //Reached page limit
-        if (atLimit) {
-            render.drawRect(Textures.UIs.quest_book, x + 128, y + 88, 223, 222, 18, 10);
-            return;
-        }
-
-        //Hovering
-        if (posX >= -145 && posX <= -127 && posY >= -97 && posY <= -88) {
-            render.drawRect(Textures.UIs.quest_book, x + 128, y + 88, 223, 222, 18, 10);
-            return;
-        }
-
-        render.drawRect(Textures.UIs.quest_book, x + 128, y + 88, 205, 222, 18, 10);
-    }
-
-    /**
-     * Draws the Back button
-     *
-     * @param x drawingOrigin x
-     * @param y drawingOrigin y
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     * @param atLimit whether the button can be pressed
-     */
-    protected void drawBackButton(int x, int y, int posX, int posY, boolean atLimit) {
-        //Reached page limit
-        if (atLimit) {
-            render.drawRect(Textures.UIs.quest_book, x + 13, y + 88, 241, 222, 18, 10);
-            return;
-        }
-
-        //Hovering
-        if (posX >= -30 && posX <= -13 && posY >= -97 && posY <= -88) {
-            render.drawRect(Textures.UIs.quest_book, x + 13, y + 88, 241, 222, 18, 10);
-            return;
-        }
-
-        render.drawRect(Textures.UIs.quest_book, x + 13, y + 88, 259, 222, 18, 10);
+    protected void drawMenuButton(MatrixStack matrix, int x, int y, int posX, int posY) {
+        // TODO: uncomment
+//        matrix.pushPose();
+//        if (posX >= 74 && posX <= 90 && posY >= 37 & posY <= 46) {
+//            render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 238, 234, 16, 9);
+//            hoveredText = Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Back to Menu", TextFormatting.GRAY + "Click here to go", TextFormatting.GRAY + "back to the main page", "", TextFormatting.GREEN + "Left click to select");
+//            return;
+//        }
+//
+//        render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 222, 234, 16, 9);
     }
 
     /**
@@ -381,14 +349,16 @@ public class QuestBookPage extends Screen {
      * @param startX x to start rendering at
      * @param startY y to start rendering at
      */
-    protected void drawTextLines(List<String> lines, int startX, int startY, int scale) {
+    protected void drawTextLines(MatrixStack matrix, List<String> lines, int startX, int startY, int scale) {
         int currentY = startY;
+        matrix.pushPose();
+        matrix.scale(scale, scale, scale);
+        FontRenderer font = Minecraft.getInstance().font;
         for (String line : lines) {
-            ScreenRenderer.scale(scale);
-            render.drawString(line, startX, currentY, CommonColors.BLACK, SmartFontRenderer.TextAlignment.LEFT_RIGHT, SmartFontRenderer.TextShadow.NONE);
-            ScreenRenderer.resetScale();
+            font.draw(matrix, line, startX, currentY, 0x000000);
             currentY += 10 * scale;
         }
+        matrix.popPose();
     }
 
     /**
@@ -400,7 +370,7 @@ public class QuestBookPage extends Screen {
      */
     protected void checkMenuButton(int posX, int posY) {
         if (posX >= 74 && posX <= 90 && posY >= 37 & posY <= 46) { // Back Button
-            WynntilsSound.QUESTBOOK_PAGE.play();
+            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
             QuestBookPages.MAIN.getPage().open(false);
         }
     }

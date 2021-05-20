@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.core.framework.instances.PlayerInfo;
@@ -50,7 +51,7 @@ public class BubblesOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre e) {
+    public void render(RenderGameOverlayEvent.Pre e, MatrixStack matrix) {
         if (!Reference.onWorld) return;
 
         switch (OverlayConfig.Bubbles.INSTANCE.bubblesTexture) {

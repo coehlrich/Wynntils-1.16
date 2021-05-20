@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.rendering.SmartFontRenderer;
 import com.wynntils.core.framework.rendering.colors.CommonColors;
@@ -42,7 +43,7 @@ public class StopWatchOverlay extends Overlay {
     }
 
     @Override
-        public void render(RenderGameOverlayEvent.Pre event) {
+        public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         longPressDetection.tick(KeyManager.getStopwatchKey().getKeyBinding().isKeyDown());
 
         if ((startTime == -1 && lastTime == -1) || longPressDetection.isFinished()) return;

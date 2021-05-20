@@ -10,8 +10,8 @@ import com.wynntils.core.framework.FrameworkManager;
 import com.wynntils.core.utils.objects.Pair;
 import com.wynntils.modules.core.enums.InventoryResult;
 import com.wynntils.modules.core.interfaces.IInventoryOpenAction;
-import net.minecraft.client.Minecraft;
 import net.minecraft.inventory.container.ClickType;
+import net.minecraft.inventory.container.ContainerType;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.play.client.CClickWindowPacket;
 import net.minecraft.network.play.client.CCloseWindowPacket;
@@ -22,9 +22,9 @@ import net.minecraft.network.play.server.SWindowItemsPacket;
 import net.minecraft.util.NonNullList;
 import net.minecraft.util.text.TextFormatting;
 import net.minecraftforge.client.event.ClientChatEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.event.TickEvent;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -131,7 +131,7 @@ public class FakeInventory {
             ItemStack stack = inventory.get(slot);
             if (stack.isEmpty() || !stack.hasCustomHoverName()) continue;
 
-            String displayName = McIf.getTextWithoutFormattingCodes(stack.getDisplayName());
+            String displayName = TextFormatting.stripFormatting(stack.getHoverName().getString());
             if (filterType.test(displayName, name)) {
                 return new Pair<>(slot, stack);
             }
@@ -154,7 +154,7 @@ public class FakeInventory {
             ItemStack stack = inventory.get(slot);
             if (stack.isEmpty() || !stack.hasCustomHoverName()) continue;
 
-            String displayName = McIf.getTextWithoutFormattingCodes(stack.getDisplayName());
+            String displayName = stack.getDisplayName().getString();
             for (int i = 0; i < names.size(); ++i) {
                 if (result.get(i) != null) continue;
 
@@ -197,12 +197,12 @@ public class FakeInventory {
     // detects the GUI open, and gatters information
     @SubscribeEvent
     public void onInventoryReceive(PacketEvent<SOpenWindowPacket> e) {
-        if (!e.getPacket().getGuiId().equalsIgnoreCase("minecraft:container") || !e.getPacket().hasSlots()) {
+        if (e.getPacket().getType() != ContainerType.GENERIC_9x6) {
             close(InventoryResult.CLOSED_OVERLAP);
             return;
         }
 
-        if (!expectedWindowTitle.matcher(McIf.getTextWithoutFormattingCodes(McIf.getUnformattedText(e.getPacket().getWindowTitle()))).matches()) {
+        if (!expectedWindowTitle.matcher(TextFormatting.stripFormatting(e.getPacket().getTitle().getString())).matches()) {
             close(InventoryResult.CLOSED_OVERLAP);
             return;
         }
@@ -211,8 +211,8 @@ public class FakeInventory {
         expectingResponse = false;
         lastAction = McIf.getSystemTime();
 
-        windowId = e.getPacket().getWindowId();
-        windowTitle = McIf.getUnformattedText(e.getPacket().getWindowTitle());
+        windowId = e.getPacket().getContainerId();
+        windowTitle = e.getPacket().getTitle().getString();
         inventory = NonNullList.create();
 
         e.setCanceled(true);
@@ -221,7 +221,7 @@ public class FakeInventory {
     // detects item receiving
     @SubscribeEvent
     public void onItemsReceive(PacketEvent<SWindowItemsPacket> e) {
-        if (windowId != e.getPacket().getWindowId()) {
+        if (windowId != e.getPacket().getContainerId()) {
             close(InventoryResult.CLOSED_OVERLAP);
             return;
         }
@@ -240,12 +240,12 @@ public class FakeInventory {
     // confirm all server transactions
     @SubscribeEvent
     public void confirmAllTransactions(PacketEvent.Incoming<SConfirmTransactionPacket> e) {
-        if (windowId != e.getPacket().getWindowId()) {
+        if (windowId != e.getPacket().getContainerId()) {
             close(InventoryResult.CLOSED_OVERLAP);
             return;
         }
 
-        McIf.mc().getConnection().send(new CConfirmTransactionPacket(windowId, e.getPacket().getActionNumber(), true));
+        McIf.mc().getConnection().send(new CConfirmTransactionPacket(windowId, e.getPacket().getUid(), true));
         e.setCanceled(true);
     }
 

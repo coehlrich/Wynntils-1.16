@@ -7,8 +7,6 @@ package com.wynntils.modules.core.managers;
 import com.google.common.collect.Ordering;
 import com.wynntils.Reference;
 import com.wynntils.core.utils.StringUtils;
-import com.wynntils.core.utils.reflections.ReflectionFields;
-import net.minecraft.client.gui.overlay.PlayerTabOverlayGui;
 import net.minecraft.client.network.play.NetworkPlayerInfo;
 
 import java.util.Arrays;
@@ -73,17 +71,18 @@ public class TabManager {
     /**
      * Replaces the Minecraft tab gui ordering to be faster on Wynncraft
      */
-    public static void replaceTabOrderer() {
-        try {
-            entryOrdering = new FastEntryOrdering(
-                    (Ordering<NetworkPlayerInfo>) ReflectionFields.PlayerTabOverlayGui_ENTRY_ORDERING
-                            .getValue(PlayerTabOverlayGui.class));
-
-            ReflectionFields.PlayerTabOverlayGui_ENTRY_ORDERING.setValue(PlayerTabOverlayGui.class, entryOrdering);
-        } catch (Throwable e) {
-            e.printStackTrace();
-        }
-    }
+    // TODO: uncomment
+//    public static void replaceTabOrderer() {
+//        try {
+//            entryOrdering = new FastEntryOrdering(
+//                    (Ordering<NetworkPlayerInfo>) ReflectionFields.PlayerTabOverlayGui_ENTRY_ORDERING
+//                            .getValue(PlayerTabOverlayGui.class));
+//
+//            ReflectionFields.PlayerTabOverlayGui_ENTRY_ORDERING.setValue(PlayerTabOverlayGui.class, entryOrdering);
+//        } catch (Throwable e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     /**
      * @return the entry orderer

@@ -26,7 +26,6 @@ import com.wynntils.webapi.profiles.music.MusicLocationsProfile;
 import com.wynntils.webapi.profiles.player.PlayerStatsProfile;
 import com.wynntils.webapi.request.Request;
 import com.wynntils.webapi.request.RequestHandler;
-import net.minecraftforge.fml.common.ProgressManager;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -103,13 +102,13 @@ public class WebManager {
         if (apiUrls == null) {
             tryReloadApiUrls(false, true);
         }
-
-        ProgressManager.ProgressBar progressBar;
-        if (withProgress) {
-            progressBar = ProgressManager.push("Loading data from " + (apiUrls != null ? "APIs" : "cache"), 0);
-        } else {
-            progressBar = null;
-        }
+        // TODO: uncomment
+//        ProgressManager.ProgressBar progressBar;
+//        if (withProgress) {
+//            progressBar = ProgressManager.push("Loading data from " + (apiUrls != null ? "APIs" : "cache"), 0);
+//        } else {
+//            progressBar = null;
+//        }
 
         updateTerritories(handler);
         updateItemList(handler);
@@ -122,9 +121,9 @@ public class WebManager {
 
         handler.dispatchAsync();
 
-        if (progressBar != null) {
-            ProgressManager.pop(progressBar);
-        }
+//        if (progressBar != null) {
+//            ProgressManager.pop(progressBar);
+//        }
 
         if (isAthenaOnline())
             updateTerritoryThreadStatus(true);
@@ -523,7 +522,7 @@ public class WebManager {
 
     public static void updatePlayerProfile(RequestHandler handler) {
         if (apiUrls == null) return;
-        String url = apiUrls.get("PlayerStatsv2") + McIf.mc().getSession().getProfile().getId() + "/stats";
+        String url = apiUrls.get("PlayerStatsv2") + McIf.mc().getUser().getGameProfile().getId().toString() + "/stats";
         handler.addRequest(new Request(url, "player_profile")
             .cacheTo(new File(API_CACHE_ROOT, "player_stats.json"))
             .addHeader("apikey", apiUrls.get("WynnApiKey"))

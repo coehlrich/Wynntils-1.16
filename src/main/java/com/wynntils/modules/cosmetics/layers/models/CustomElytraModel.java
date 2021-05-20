@@ -53,13 +53,13 @@ public class CustomElytraModel extends ModelBase {
             GlStateManager.pushMatrix();
             GlStateManager.scale(0.5F, 0.5F, 0.5F);
             GlStateManager.translate(0.0F, 1.5F, -0.1F);
-            this.leftWing.render(scale);
-            this.rightWing.render(scale);
+            this.leftWing.render(scale, null);
+            this.rightWing.render(scale, null);
             GlStateManager.popMatrix();
         }
         else {
-            this.leftWing.render(scale);
-            this.rightWing.render(scale);
+            this.leftWing.render(scale, null);
+            this.rightWing.render(scale, null);
         }
     }
 

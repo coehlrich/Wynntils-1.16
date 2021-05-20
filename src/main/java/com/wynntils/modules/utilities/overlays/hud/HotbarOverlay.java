@@ -4,6 +4,7 @@
 
 package com.wynntils.modules.utilities.overlays.hud;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.wynntils.McIf;
 import com.wynntils.core.framework.overlays.Overlay;
 import com.wynntils.core.framework.rendering.colors.CustomColor;
@@ -28,7 +29,7 @@ public class HotbarOverlay extends Overlay {
     }
 
     @Override
-    public void render(RenderGameOverlayEvent.Pre event) {
+    public void render(RenderGameOverlayEvent.Pre event, MatrixStack matrix) {
         if (!WIDGETS_TEXTURE.loaded) WIDGETS_TEXTURE.load();
 
         ClientPlayerEntity player = McIf.player();
