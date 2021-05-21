@@ -15,7 +15,6 @@ import com.wynntils.modules.questbook.instances.QuestBookPage;
 import com.wynntils.webapi.WebManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SimpleSound;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.screen.inventory.InventoryScreen;
 import net.minecraft.client.gui.widget.button.ImageButton;
 import net.minecraft.util.ResourceLocation;
@@ -86,8 +85,6 @@ public class MainPage extends QuestBookPage {
 
         String guild = WebManager.getPlayerProfile() != null ? WebManager.getPlayerProfile().getGuildRank() != null ? WebManager.getPlayerProfile().getGuildName() + " " + WebManager.getPlayerProfile().getGuildRank().getStars() : WebManager.getPlayerProfile().getGuildName() : "";
 
-        FontRenderer font = Minecraft.getInstance().font;
-
         drawCenteredStringNoShadow(matrix, font, guild, x + 80, y - 53, TextFormatting.AQUA.getColor());
         drawCenteredStringNoShadow(matrix, font, McIf.player().getName(), x + 80, y - 43, 0);
         drawCenteredStringNoShadow(matrix, font, PlayerInfo.get(CharacterData.class).getCurrentClass().toString() + " Level " + PlayerInfo.get(CharacterData.class).getLevel(), x + 80, y + 40, TextFormatting.DARK_PURPLE.getColor());
@@ -154,9 +151,8 @@ public class MainPage extends QuestBookPage {
 
         public PageButton(QuestBookPage page, int p_i244513_1_) {
             super(p_i244513_1_, Minecraft.getInstance().screen.height / 2 - 18, 30, 30, page.getIcon().getX() * 30, 0, page.getIcon().hasHighlight() ? 30 : 0, QuestBookPage.PAGE_ICONS, 256, 256, button -> page.open(false), (button, matrix, mouseX, mouseY) -> {
-                Minecraft.getInstance().screen.renderComponentTooltip(matrix, page.getHoveredDescription(), mouseX, mouseY);
             }, page.getTitle());
-            // TODO Auto-generated constructor stub
+            this.page = page;
         }
 
         @Override
@@ -167,6 +163,11 @@ public class MainPage extends QuestBookPage {
                 fill(matrix, this.x, this.y, this.x + this.width, this.y + this.height, unselected_cube);
             }
             super.renderButton(matrix, p_230431_2_, p_230431_3_, p_230431_4_);
+        }
+
+        @Override
+        public void renderToolTip(MatrixStack p_230443_1_, int p_230443_2_, int p_230443_3_) {
+            tooltip = page.getHoveredDescription();
         }
 
     }

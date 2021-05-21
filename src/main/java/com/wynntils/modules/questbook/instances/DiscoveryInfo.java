@@ -4,6 +4,9 @@
 
 package com.wynntils.modules.questbook.instances;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.wynntils.McIf;
 import com.wynntils.core.framework.instances.PlayerInfo;
 import com.wynntils.core.framework.instances.data.CharacterData;
@@ -12,13 +15,11 @@ import com.wynntils.core.utils.StringUtils;
 import com.wynntils.modules.questbook.enums.DiscoveryType;
 import com.wynntils.webapi.WebManager;
 import com.wynntils.webapi.profiles.TerritoryProfile;
+
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraft.util.text.TextFormatting;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static net.minecraft.util.text.McIf.getTextWithoutFormattingCodes;
 
 public class DiscoveryInfo {
 
@@ -26,7 +27,7 @@ public class DiscoveryInfo {
 
     private String name;
     private DiscoveryType type;
-    private List<String> lore;
+    private List<ITextComponent> lore;
     private String description;
     private int minLevel;
     private TerritoryProfile guildTerritory = null;
@@ -44,7 +45,7 @@ public class DiscoveryInfo {
         // simple parameters
         name = originalStack.getDisplayName().getString();
         name = StringUtils.normalizeBadString(name.substring(0, name.length() - 1));
-        minLevel = Integer.parseInt(TextFormatting.stripFormatting(lore.get(0)).replace("✔ Combat Lv. Min: ", ""));
+        minLevel = Integer.parseInt(lore.get(0).getString().replace("✔ Combat Lv. Min: ", ""));
 
         // type
         type = null;
@@ -56,7 +57,7 @@ public class DiscoveryInfo {
         // flat description
         StringBuilder descriptionBuilder = new StringBuilder();
         for (int x = 2; x < lore.size(); x++) {
-            descriptionBuilder.append(getTextWithoutFormattingCodes(lore.get(x)));
+            descriptionBuilder.append(lore.get(x).getString());
         }
         description = descriptionBuilder.toString();
 
@@ -75,7 +76,7 @@ public class DiscoveryInfo {
             }
         }
 
-        lore.add(0, this.name);
+        lore.add(0, new StringTextComponent(this.name));
         this.discovered = discovered;
         valid = true;
     }
@@ -89,9 +90,14 @@ public class DiscoveryInfo {
         }
 
         this.lore = new ArrayList<>();
-        lore.add(type.getColour() + "" + TextFormatting.BOLD + this.name);
-        lore.add((minLevel <= PlayerInfo.get(CharacterData.class).getLevel() ? TextFormatting.GREEN + "✔" : TextFormatting.RED + "✖") + TextFormatting.GRAY + " Combat Lv. Min: " + minLevel);
-        lore.add("");
+        lore.add(new StringTextComponent(this.name)
+        		.withStyle(type.getColour(), TextFormatting.BOLD));
+        boolean leveled = minLevel <= PlayerInfo.get(CharacterData.class).getLevel();
+        lore.add(new StringTextComponent(leveled ? "✔" : "✖")
+        		.withStyle(leveled ? TextFormatting.GREEN : TextFormatting.RED)
+        		.append(new StringTextComponent(" Combat Lv. Min: " + minLevel)
+        				.withStyle(TextFormatting.GRAY)));
+        lore.add(StringTextComponent.EMPTY);
 
         this.minLevel = minLevel;
         this.type = type;
@@ -117,7 +123,7 @@ public class DiscoveryInfo {
         return type;
     }
 
-    public List<String> getLore() {
+    public List<ITextComponent> getLore() {
         return lore;
     }
 

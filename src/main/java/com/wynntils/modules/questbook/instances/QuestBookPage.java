@@ -5,11 +5,9 @@
 package com.wynntils.modules.questbook.instances;
 
 import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.wynntils.McIf;
 import com.wynntils.Reference;
 import com.wynntils.WynntilsSounds;
-import com.wynntils.core.framework.rendering.colors.CustomColor;
 import com.wynntils.core.utils.StringUtils;
 import com.wynntils.core.utils.reference.Easing;
 import com.wynntils.modules.core.config.CoreDBConfig;
@@ -60,11 +58,13 @@ public class QuestBookPage extends Screen {
 
     private long delay = McIf.getSystemTime();
 
+    protected List<ITextComponent> tooltip = null;
+
     // Colours
-    protected static final CustomColor background_1 = CustomColor.fromInt(0x000000, 0.3f);
-    protected static final CustomColor background_2 = CustomColor.fromInt(0x000000, 0.2f);
-    protected static final CustomColor background_3 = CustomColor.fromInt(0x00ff00, 0.3f);
-    protected static final CustomColor background_4 = CustomColor.fromInt(0x008f00, 0.2f);
+    protected static final int background_1 = 0x4c000000;
+    protected static final int background_2 = 0x33000000;
+    protected static final int background_3 = 0x4c00ff00;
+    protected static final int background_4 = 0x33008f00;
 
     protected static final int unselected_cube = 0x33000000;
     protected static final int selected_cube = 0x4d000000;
@@ -94,8 +94,10 @@ public class QuestBookPage extends Screen {
     @Override
     public void init() {
         if (open) {
+            updatePage();
             if (!showSearchBar) return;
 
+            addWidget(textField);
             textField.x = width / 2 + 32;
             textField.y = height / 2 - 97;
             return;
@@ -115,6 +117,7 @@ public class QuestBookPage extends Screen {
             textField.setBordered(false);
             textField.setCanLoseFocus(QuestBookConfig.INSTANCE.searchBoxClickRequired);
             textField.setResponder(this::searchUpdate);
+            addWidget(textField);
         }
 
     }
@@ -125,6 +128,10 @@ public class QuestBookPage extends Screen {
         rightPage = addButton(new ImageButton(middleX + 128, middleY + 88, 18, 10, 100, 281, 10, QUESTBOOK, WIDTH, HEIGHT, button -> {
             goForward();
         }));
+
+        leftPage = addButton(new ImageButton(middleX + 13, middleY + 88, 18, 10, 118, 281, 10, QUESTBOOK, WIDTH, HEIGHT, button -> {
+            goBack();
+        }));
     }
 
     public void addMenuButton() {
@@ -134,7 +141,7 @@ public class QuestBookPage extends Screen {
             Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
             QuestBookPages.MAIN.getPage().open(false);
         }, (button, matrix, mouseX, mouseY) -> {
-            Minecraft.getInstance().screen.renderComponentTooltip(matrix, Arrays.asList(
+            tooltip = Arrays.asList(
                     new StringTextComponent("[>] ")
                             .withStyle(TextFormatting.GOLD)
                             .append(new StringTextComponent("Back to Menu")
@@ -145,8 +152,7 @@ public class QuestBookPage extends Screen {
                             .withStyle(TextFormatting.GRAY),
                     StringTextComponent.EMPTY,
                     new StringTextComponent("Left click to select")
-                            .withStyle(TextFormatting.GREEN)),
-                    mouseX, mouseY);
+                            .withStyle(TextFormatting.GREEN));
         }, new StringTextComponent("Back to Menu")));
     }
 
@@ -190,18 +196,28 @@ public class QuestBookPage extends Screen {
         matrix.scale(2f, 2f, 2f);
         font.draw(matrix, title, (int) ((x - 158f) / 2.0f), (int) ((y - 74) / 2.0f), TextFormatting.YELLOW.getColor());
         matrix.popPose();
-//
-//        /* Render search bar when needed */
-//        if (showSearchBar) {
-//            drawSearchBar(x, y);
-//        }
-//
-//        matrix.popPose();
+
+        /* Render search bar when needed */
+        if (showSearchBar) {
+            drawSearchBar(matrix, mouseX, mouseY, partialTicks);
+        }
+
+        matrix.popPose();
     }
 
-    protected void drawSearchBar(int centerX, int centerY) {
-//        render.drawRect(Textures.UIs.quest_book, centerX + 13, centerY - 109, 52, 255, 133, 23);
-//        textField.drawTextBox();
+    @Override
+    public void render(MatrixStack p_230430_1_, int p_230430_2_, int p_230430_3_, float p_230430_4_) {
+        tooltip = null;
+        super.render(p_230430_1_, p_230430_2_, p_230430_3_, p_230430_4_);
+        if (tooltip != null) {
+            this.renderComponentTooltip(p_230430_1_, tooltip, p_230430_2_, p_230430_3_);
+        }
+    }
+
+    protected void drawSearchBar(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
+        Minecraft.getInstance().getTextureManager().bind(QUESTBOOK);
+        blit(matrix, width / 2 + 13, height / 2 - 109, 52, 255, 133, 23, WIDTH, HEIGHT);
+        textField.render(matrix, mouseX, mouseY, partialTicks);
     }
 
     public void drawCenteredStringNoShadow(MatrixStack p_238471_0_, FontRenderer p_238471_1_, String p_238471_2_, int p_238471_3_, int p_238471_4_, int p_238471_5_) {
@@ -261,14 +277,6 @@ public class QuestBookPage extends Screen {
         }
     }
 
-    protected void renderHoveredText(MatrixStack matrix, int mouseX, int mouseY) {
-        matrix.pushPose();
-        RenderSystem.disableLighting();
-        if (hoveredText != null)
-            renderComponentTooltip(matrix, hoveredText, mouseX, mouseY);
-        matrix.popPose();
-    }
-
     protected void searchUpdate(String currentText) { }
 
     protected boolean doesSearchMatch(String toCheck, String searchText) {
@@ -294,6 +302,11 @@ public class QuestBookPage extends Screen {
     protected void updatePage() {
         acceptBack = currentPage > 1;
         acceptNext = currentPage < pages;
+
+        if (leftPage != null) {
+            leftPage.visible = acceptBack;
+            rightPage.visible = acceptNext;
+        }
     }
 
     public void open(boolean showAnimation) {
@@ -323,26 +336,6 @@ public class QuestBookPage extends Screen {
     }
 
     /**
-     * Draw the Menu Button
-     *
-     * @param x drawingOrigin x
-     * @param y drawingOrigin y
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     */
-    protected void drawMenuButton(MatrixStack matrix, int x, int y, int posX, int posY) {
-        // TODO: uncomment
-//        matrix.pushPose();
-//        if (posX >= 74 && posX <= 90 && posY >= 37 & posY <= 46) {
-//            render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 238, 234, 16, 9);
-//            hoveredText = Arrays.asList(TextFormatting.GOLD + "[>] " + TextFormatting.BOLD + "Back to Menu", TextFormatting.GRAY + "Click here to go", TextFormatting.GRAY + "back to the main page", "", TextFormatting.GREEN + "Left click to select");
-//            return;
-//        }
-//
-//        render.drawRect(Textures.UIs.quest_book, x - 90, y - 46, 222, 234, 16, 9);
-    }
-
-    /**
      * Draws a list of text lines
      *
      * @param lines list of lines to be rendered
@@ -361,56 +354,12 @@ public class QuestBookPage extends Screen {
         matrix.popPose();
     }
 
-    /**
-     * Checks if menu button is clicked, goes back to MainPage
-     *
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     *
-     */
-    protected void checkMenuButton(int posX, int posY) {
-        if (posX >= 74 && posX <= 90 && posY >= 37 & posY <= 46) { // Back Button
-            Minecraft.getInstance().getSoundManager().play(SimpleSound.forUI(WynntilsSounds.QUESTBOOK_PAGE.get(), 1f));
-            QuestBookPages.MAIN.getPage().open(false);
+    @Override
+    public boolean keyPressed(int p_231046_1_, int p_231046_2_, int p_231046_3_) {
+        if (showSearchBar && textField.canConsumeInput() && textField.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_)) {
+            return true;
         }
-    }
-
-    /**
-     * Checks if Forward or Back button is clicked, changes page
-     *
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     *
-     */
-    protected void checkForwardAndBackButtons(int posX, int posY) {
-        checkForwardButton(posX, posY);
-        checkBackButton(posX, posY);
-    }
-
-    /**
-     * Checks if Forward button is clicked, goes forward a page
-     *
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     *
-     */
-    protected void checkForwardButton(int posX, int posY) {
-        if (posX >= -145 && posX <= -127 && posY >= -97 && posY <= -88) { // Next Page Button
-            goForward();
-        }
-    }
-
-    /**
-     * Checks if Back button is clicked, goes back a page
-     *
-     * @param posX mouseX (from drawingOrigin)
-     * @param posY mouseY (from drawingOrigin)
-     *
-     */
-    protected void checkBackButton(int posX, int posY) {
-        if (posX >= -30 && posX <= -13 && posY >= -97 && posY <= -88) { // Back Page Button
-            goBack();
-        }
+        return super.keyPressed(p_231046_1_, p_231046_2_, p_231046_3_);
     }
 
 }

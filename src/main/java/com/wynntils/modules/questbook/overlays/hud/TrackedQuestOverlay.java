@@ -37,10 +37,11 @@ public class TrackedQuestOverlay extends Overlay {
         drawString(matrix, font, "Tracked " + name + " Info: ", 0, 0, TextFormatting.DARK_GREEN.getColor());
 
         int currentY = 0;
-        if (config.displayQuestName) {
-            drawString(matrix, font, trackedQuest.getName(), 0, 10 + currentY, TextFormatting.GREEN.getColor());
-            currentY += 10;
-        }
+        // TODO: uncomment
+//        if (config.displayQuestName) {
+//            drawString(matrix, font, trackedQuest.getName(), 0, 10 + currentY, TextFormatting.GREEN.getColor());
+//            currentY += 10;
+//        }
         for (String message : trackedQuest.getSplittedDescription()) {
             drawString(matrix, font, message, 0, 10 + currentY, 0xffffff);
             currentY += 10;
